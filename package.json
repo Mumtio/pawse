@@ -2,12 +2,15 @@
   "name": "pawse",
   "version": "0.1.0",
   "description": "A calm, no-shame study companion. Made for people who work better with a little company.",
+  "author": "Pawse",
   "main": "./out/main/index.js",
   "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
+    "package:win": "npm run build && electron-builder --win nsis",
+    "package:dir": "npm run build && electron-builder --dir",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "check": "esbuild scripts/behaviour-check.ts --bundle --platform=node --format=esm --alias:@shared=./src/shared --outfile=.tmp/check.mjs --log-level=warning && node .tmp/check.mjs",
@@ -24,8 +27,42 @@
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.4.0",
     "electron": "^36.0.0",
+    "electron-builder": "^26.15.3",
     "electron-vite": "^3.1.0",
     "typescript": "^5.8.0",
     "vite": "^6.3.0"
+  },
+  "build": {
+    "appId": "com.pawse.app",
+    "productName": "Pawse",
+    "directories": {
+      "output": "release",
+      "buildResources": "resources"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": ".",
+        "filter": ["tray.png", "tray@2x.png"]
+      }
+    ],
+    "asar": true,
+    "win": {
+      "target": "nsis",
+      "icon": "resources/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Pawse",
+      "artifactName": "Pawse-Setup-${version}.${ext}"
+    }
   }
 }

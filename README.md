@@ -55,6 +55,23 @@ nothing is ever written back to a workspace.
 
 Requires [Node 20+](https://nodejs.org/).
 
+### For most people
+
+Download `Pawse-Setup-<version>.exe` from the latest GitHub Release and run it. Pawse installs with
+Start menu and desktop shortcuts; Node.js and the source code are not required.
+
+### Build an installer
+
+On Windows, maintainers can create the same installer locally:
+
+```bash
+npm install
+npm run package:win
+```
+
+The installer is written to `release/`. Public releases should be code-signed so Windows does not
+show an unknown-publisher warning.
+
 ### 1. Download
 
 ```bash
