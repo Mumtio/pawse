@@ -1,0 +1,108 @@
+/**
+ * Everything here is gated on classes the content script adds, so the
+ * extension changes nothing unless Pawse says a focus session is running.
+ *
+ *   .pawse-focus  — a session is active and this mode hides feeds
+ *   .pawse-home   — this page is one of the site's endless-scroll routes
+ *
+ * Only reasonably stable hooks are used: custom element names, ARIA roles and
+ * test ids. Generated class names are deliberately avoided — they change
+ * without notice. Anything that has to be found by label or link target is
+ * handled in content.js instead, which is why there are no Reels or Shorts
+ * rules here.
+ *
+ * Nothing blocks navigation. Search, your messages, and any video you opened
+ * on purpose all still work; only the infinite parts go quiet.
+ */
+
+/* -- YouTube -------------------------------------------------------------- */
+html.pawse-focus ytd-browse[page-subtype='home'] ytd-rich-grid-renderer,
+html.pawse-focus ytd-reel-shelf-renderer,
+html.pawse-focus ytd-rich-shelf-renderer[is-shorts],
+html.pawse-focus ytd-rich-section-renderer,
+html.pawse-focus #related,
+html.pawse-focus #secondary.ytd-watch-flexy,
+html.pawse-focus .ytp-endscreen-content,
+html.pawse-focus .ytp-ce-element {
+  display: none !important;
+}
+
+/* The Shorts player route itself. */
+html.pawse-focus.pawse-home ytd-shorts {
+  display: none !important;
+}
+
+/* -- Reddit --------------------------------------------------------------- */
+html.pawse-focus.pawse-home shreddit-feed,
+html.pawse-focus.pawse-home div[data-testid='frontpage-feed'],
+html.pawse-focus pdp-right-rail,
+html.pawse-focus shreddit-comments-page-ad {
+  display: none !important;
+}
+
+/* -- X / Twitter ---------------------------------------------------------- */
+html.pawse-focus.pawse-home div[data-testid='primaryColumn'] section[role='region'],
+html.pawse-focus div[data-testid='sidebarColumn'] {
+  display: none !important;
+}
+
+/* -- Instagram ------------------------------------------------------------ */
+/* Home feed and the Reels player share the same main region. */
+html.pawse-focus.pawse-home main[role='main'] > div,
+html.pawse-focus section > main > div > div:nth-child(2) {
+  display: none !important;
+}
+
+/* -- TikTok --------------------------------------------------------------- */
+html.pawse-focus.pawse-home div[data-e2e='recommend-list-item-container'],
+html.pawse-focus div[data-e2e='feed-video'] {
+  display: none !important;
+}
+
+/* -- Facebook ------------------------------------------------------------- */
+html.pawse-focus.pawse-home div[role='feed'],
+/* The Reels tray and the "people you may know" carousel sit outside the feed
+   role, so they survive hiding the feed itself. */
+html.pawse-focus.pawse-home div[role='main'] div[data-pagelet^='Reels'],
+html.pawse-focus.pawse-home div[data-pagelet='VideoChainingCard'],
+html.pawse-focus.pawse-home div[aria-label='Reels'] {
+  display: none !important;
+}
+
+/* -- the note left in place of a hidden feed ------------------------------ */
+/**
+ * Fixed rather than placed in the document flow. These sites each have a
+ * different content container and most put a fixed header over the top, so a
+ * note inserted into the layout ends up behind something or off-screen.
+ */
+.pawse-note {
+  position: fixed !important;
+  top: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483000;
+  width: min(460px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 20px 24px;
+  background: #ede7d6;
+  color: #191b33;
+  border: 2px solid #191b33;
+  box-shadow: 3px 3px 0 #191b33;
+  border-radius: 0;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: left;
+  pointer-events: none;
+}
+
+.pawse-note strong {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 400;
+}
+
+.pawse-note span {
+  color: #5c5a70;
+  font-size: 12px;
+}

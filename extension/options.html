@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pawse Gatekeeper</title>
+    <style>
+      :root {
+        --ink: #191b33;
+        --bg: #2b2e4f;
+        --panel: #343863;
+        --cream: #ede7d6;
+        --moss: #8cbf69;
+        --coral: #d97c79;
+        --text: #e8e6f0;
+        --dim: #a5a3c4;
+      }
+      body {
+        width: 320px;
+        margin: 0;
+        padding: 20px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+        letter-spacing: 0.04em;
+      }
+      p {
+        margin: 0 0 16px;
+        color: var(--dim);
+        font-size: 12px;
+      }
+      label {
+        display: block;
+        font-size: 11px;
+        color: var(--dim);
+        margin-bottom: 6px;
+        letter-spacing: 0.08em;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        background: #23253f;
+        color: var(--text);
+        border: 1px solid #454a7d;
+        border-radius: 0;
+        font: inherit;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+      button {
+        margin-top: 12px;
+        padding: 8px 16px;
+        background: var(--moss);
+        color: var(--ink);
+        border: 2px solid var(--ink);
+        border-radius: 0;
+        box-shadow: 3px 3px 0 var(--ink);
+        font: inherit;
+        cursor: pointer;
+      }
+      button:active {
+        transform: translate(3px, 3px);
+        box-shadow: none;
+      }
+      #status {
+        margin-top: 14px;
+        padding: 8px 10px;
+        border-left: 3px solid var(--dim);
+        font-size: 12px;
+        min-height: 18px;
+      }
+      #status.ok {
+        border-color: var(--moss);
+        color: var(--moss);
+      }
+      #status.bad {
+        border-color: var(--coral);
+        color: var(--coral);
+      }
+      footer {
+        margin-top: 18px;
+        font-size: 11px;
+        color: var(--dim);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Pawse</h1>
+    <p>
+      Enter the pairing code from Pawse › Settings › Connections. Everything stays on this
+      computer.
+    </p>
+
+    <label for="token">pairing code</label>
+    <input id="token" placeholder="ABC-123" maxlength="7" autocomplete="off" spellcheck="false" />
+    <button id="save">Pair</button>
+
+    <div id="status" role="status"></div>
+
+    <footer>
+      Only the domain, time on page, and long scroll stretches are shared — never URLs, page
+      content, or anything you type.
+    </footer>
+
+    <script src="options.js"></script>
+  </body>
+</html>
