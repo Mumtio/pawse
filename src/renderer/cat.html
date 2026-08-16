@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moss</title>
+    <style>
+      /* The window itself is transparent; only the sprite and bubble paint. */
+      html,
+      body,
+      #cat-root {
+        background: transparent !important;
+        overflow: hidden;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cat-root"></div>
+    <script type="module" src="/src/cat.tsx"></script>
+  </body>
+</html>

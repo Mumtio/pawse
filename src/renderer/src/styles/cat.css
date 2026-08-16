@@ -1,0 +1,122 @@
+/**
+ * The cat window. Everything outside the sprite and the bubble must stay
+ * transparent and non-interactive, or the companion becomes an obstacle.
+ */
+
+.cat-shell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2);
+}
+
+.cat-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s1);
+  padding: var(--s2);
+  cursor: grab;
+}
+
+.cat-body.is-dragging {
+  cursor: grabbing;
+}
+
+.cat-hud {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  padding: 2px var(--s2);
+  background: var(--cream);
+  color: var(--on-cream);
+  border: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.cat-hud-time {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+}
+
+.cat-hud-phase {
+  font-size: var(--t-xs);
+  color: var(--on-cream-dim);
+}
+
+.cat-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s1) var(--s2);
+  background: var(--bg);
+  border: var(--border-line);
+  box-shadow: var(--shadow-sm);
+}
+
+/* -- speech bubble -------------------------------------------------------- */
+.bubble {
+  position: relative;
+  /* Leave room for the shell padding inside the narrowest cat window. */
+  max-width: 290px;
+  padding: var(--s4) var(--s4) var(--s3);
+  border: var(--border);
+  box-shadow: var(--shadow);
+  /* One degree off true. Hand-placed, not machine-placed. */
+  transform: rotate(-1deg);
+}
+
+.bubble-text {
+  font-size: var(--t-sm);
+  color: var(--on-cream);
+  /* Room for the close control so a long line never runs under it. */
+  padding-right: var(--s5);
+}
+
+.bubble-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin-top: var(--s3);
+}
+
+.bubble-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  line-height: 1;
+  font-size: var(--t-md);
+  background: transparent;
+  border: 2px solid transparent;
+  color: var(--on-cream-dim);
+}
+
+.bubble-close:hover {
+  color: var(--on-cream);
+  border-color: var(--ink);
+}
+
+.bubble-actions .btn {
+  border-color: var(--ink);
+}
+
+/* The tail of the bubble, pointing down at the cat. */
+.bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 28px;
+  width: 10px;
+  height: 10px;
+  background: var(--cream);
+  border-right: var(--border);
+  border-bottom: var(--border);
+  transform: rotate(45deg);
+  background-image: none;
+}

@@ -1,0 +1,163 @@
+/**
+ * Pawse design tokens.
+ *
+ * House rules, in order of how often they get broken:
+ *   1. border-radius is 0. Pixels don't have soft corners.
+ *   2. No blurred shadows. Hard offsets only.
+ *   3. No gradients as decoration — use the dither or hatch pattern instead.
+ *   4. Everything sits on a 4px grid.
+ *   5. Sprites scale by whole numbers, with image-rendering: pixelated.
+ *   6. Motion is steps() for sprites and <=120ms for UI. Nothing bounces.
+ */
+
+:root {
+  /* -- palette: night (default) ------------------------------------------ */
+  --ink: #191b33;
+  --bg: #2b2e4f;
+  --bg-deep: #23253f;
+  --panel: #343863;
+  --panel-soft: #2f3358;
+  --line: #454a7d;
+
+  --cream: #ede7d6;
+  --cream-dim: #dcd4be;
+  --cream-deep: #c9c0a6;
+
+  --moss: #8cbf69;
+  --moss-dark: #6e9e4e;
+  --moss-deep: #4f7735;
+
+  --coral: #d97c79;
+  --coral-dark: #b85f5c;
+  --amber: #e8a33d;
+  --sky: #7fa9d9;
+
+  --text: #e8e6f0;
+  --text-dim: #a5a3c4;
+  --text-faint: #6f6e94;
+  --on-cream: #191b33;
+  --on-cream-dim: #5c5a70;
+
+  /* -- spacing: 4px grid ------------------------------------------------- */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s8: 32px;
+  --s10: 40px;
+  --s12: 48px;
+
+  /* -- type -------------------------------------------------------------- */
+  --font-display: 'Silkscreen', 'Departure Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --font-body: 'Departure Mono', ui-monospace, 'Cascadia Mono', 'DejaVu Sans Mono', Consolas, monospace;
+
+  /* Bitmap faces only stay crisp at whole multiples of their design size. */
+  --t-xs: 11px;
+  --t-sm: 13px;
+  --t-md: 15px;
+  --t-lg: 20px;
+  --t-xl: 26px;
+  --t-2xl: 34px;
+
+  /* -- edges ------------------------------------------------------------- */
+  --border: 2px solid var(--ink);
+  --border-line: 1px solid var(--line);
+  --shadow: 3px 3px 0 var(--ink);
+  --shadow-sm: 2px 2px 0 var(--ink);
+  --shadow-lift: 4px 4px 0 var(--ink);
+
+  --tap: 90ms;
+}
+
+/* -- palette: day --------------------------------------------------------- */
+:root[data-theme='day'] {
+  --ink: #2b2e4f;
+  --bg: #efe9da;
+  --bg-deep: #e2dac6;
+  --panel: #f6f1e5;
+  --panel-soft: #eae3d1;
+  --line: #cfc5ad;
+
+  --cream: #ffffff;
+  --cream-dim: #f2ecdd;
+  --cream-deep: #ddd4bd;
+
+  --text: #23253f;
+  --text-dim: #5f5f7e;
+  --text-faint: #8d8caa;
+}
+
+/* -- patterns ------------------------------------------------------------- */
+
+/**
+ * Diagonal hatch = absence. Away time, empty states, depleted pips, disabled
+ * controls. Using one motif for one meaning everywhere is most of what makes
+ * an interface read as designed rather than assembled.
+ */
+.hatch {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--line) 0 2px,
+    transparent 2px 5px
+  );
+}
+
+/** Dither stands in wherever a gradient would otherwise be reached for. */
+.dither {
+  background-image: repeating-conic-gradient(
+    var(--panel) 0% 25%,
+    var(--panel-soft) 0% 50%
+  );
+  background-size: 4px 4px;
+}
+
+/**
+ * The perforated card edge — the signature shape, borrowed from a torn stamp.
+ * Semicircles in the page colour are punched along the top and bottom edges,
+ * so the card looks torn out rather than drawn on.
+ */
+.stamp {
+  position: relative;
+  background: var(--cream);
+  color: var(--on-cream);
+}
+
+.stamp::before,
+.stamp::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background-repeat: repeat-x;
+  background-size: 12px 6px;
+  pointer-events: none;
+}
+
+.stamp::before {
+  top: 0;
+  background-image: radial-gradient(circle at 6px 0, var(--bg) 3px, transparent 3.5px);
+}
+
+.stamp::after {
+  bottom: 0;
+  background-image: radial-gradient(circle at 6px 6px, var(--bg) 3px, transparent 3.5px);
+}
+
+/* Sprites and any pixel art must never be smoothed. */
+.pixel {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,311 @@
+/* Fonts are loaded from public/fonts. If they're absent the stack falls back
+   to a system monospace and the layout still holds — see README. */
+@font-face {
+  font-family: 'Departure Mono';
+  src: url('/fonts/DepartureMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Silkscreen';
+  src: url('/fonts/Silkscreen-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--t-sm);
+  line-height: 1.5;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--t-2xl);
+}
+h2 {
+  font-size: var(--t-lg);
+}
+h3 {
+  font-size: var(--t-md);
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: var(--moss);
+  color: var(--ink);
+}
+
+/* Focus rings are square and obvious — accessibility is not a place to be
+   subtle, and a hard outline suits the rest of the language anyway. */
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* -- scrollbars ----------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border: 2px solid var(--bg-deep);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+}
+
+/* -- buttons -------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  padding: var(--s2) var(--s4);
+  min-height: 34px;
+  border: var(--border);
+  border-radius: 0;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--tap) ease-out, box-shadow var(--tap) ease-out;
+  text-align: center;
+}
+
+.btn:hover {
+  background: var(--panel-soft);
+}
+
+/* The press is a physical one: the button moves onto its own shadow. */
+.btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+  transform: none;
+}
+
+.btn-primary {
+  background: var(--moss);
+  color: var(--ink);
+  border-color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.btn-primary:hover {
+  background: var(--moss-dark);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--line);
+  box-shadow: none;
+  color: var(--text-dim);
+}
+
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: var(--text-faint);
+}
+
+.btn-danger {
+  background: var(--coral);
+  color: var(--ink);
+}
+
+.btn-sm {
+  min-height: 26px;
+  padding: 2px var(--s3);
+  font-size: var(--t-xs);
+}
+
+.btn-cream {
+  background: var(--cream);
+  color: var(--on-cream);
+}
+
+/* -- inputs --------------------------------------------------------------- */
+.field {
+  width: 100%;
+  padding: var(--s2) var(--s3);
+  min-height: 34px;
+  background: var(--bg-deep);
+  color: var(--text);
+  border: var(--border-line);
+  border-radius: 0;
+}
+
+.field::placeholder {
+  color: var(--text-faint);
+}
+
+.field:focus {
+  border-color: var(--moss);
+  outline: none;
+}
+
+textarea.field {
+  min-height: 140px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+/* -- segmented control ---------------------------------------------------- */
+.seg {
+  display: inline-flex;
+  border: var(--border-line);
+}
+
+.seg > button {
+  padding: var(--s2) var(--s4);
+  background: transparent;
+  border: none;
+  border-right: var(--border-line);
+  color: var(--text-dim);
+  min-height: 34px;
+}
+
+.seg > button:last-child {
+  border-right: none;
+}
+
+.seg > button[aria-pressed='true'] {
+  background: var(--cream);
+  color: var(--on-cream);
+}
+
+/* -- toggle --------------------------------------------------------------- */
+.toggle {
+  width: 44px;
+  height: 22px;
+  padding: 2px;
+  border: var(--border);
+  background: var(--bg-deep);
+  display: inline-flex;
+  align-items: center;
+}
+
+.toggle > span {
+  width: 18px;
+  height: 14px;
+  background: var(--text-faint);
+  transition: transform var(--tap) ease-out;
+}
+
+.toggle[aria-pressed='true'] {
+  background: var(--moss);
+}
+
+.toggle[aria-pressed='true'] > span {
+  background: var(--ink);
+  transform: translateX(18px);
+}
+
+/* -- panels & cards ------------------------------------------------------- */
+.panel {
+  background: var(--panel-soft);
+  border: var(--border-line);
+  padding: var(--s5);
+}
+
+.card-cream {
+  background: var(--cream);
+  color: var(--on-cream);
+  border: var(--border);
+  box-shadow: var(--shadow);
+  padding: var(--s4) var(--s5);
+}
+
+/* -- misc ----------------------------------------------------------------- */
+.label {
+  font-size: var(--t-xs);
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+}
+
+.muted {
+  color: var(--text-dim);
+}
+
+.faint {
+  color: var(--text-faint);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
