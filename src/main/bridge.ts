@@ -4,7 +4,8 @@ import type { AppState } from '@shared/types'
 import { isBlockedDomain } from '@shared/defaults'
 import { getState, publish } from './appState'
 import { penaliseDoomscroll } from './pet'
-import { pushLog, startOfLocalDay } from './log'
+import { recordSiteTime } from './insights'
+import { pushLog } from './log'
 
 /**
  * The bridge the browser extension talks to.
@@ -210,28 +211,6 @@ function maybeAskAboutScrolling(state: AppState, domain: string): void {
       { id: 'return', label: 'back to work', intent: { type: 'doomscroll:return' } }
     ]
   })
-}
-
-/** Older than this and it's no longer answering "where did this week go". */
-const SITE_TIME_KEEP_DAYS = 14
-
-/**
- * Add to the running total for a site, bucketed by local day.
- *
- * Pruned on write rather than on read: this is the only place the map grows,
- * and a stale bucket that nothing ever reads is still a stale bucket sitting
- * in an exported file.
- */
-function recordSiteTime(state: AppState, domain: string, ms: number, now: number): void {
-  if (ms <= 0) return
-  const day = String(startOfLocalDay(now))
-  const bucket = (state.siteTime[day] ??= {})
-  bucket[domain] = (bucket[domain] ?? 0) + ms
-
-  const cutoff = startOfLocalDay(now - SITE_TIME_KEEP_DAYS * 86_400_000)
-  for (const key of Object.keys(state.siteTime)) {
-    if (Number(key) < cutoff) delete state.siteTime[key]
-  }
 }
 
 function normaliseDomain(input: string): string {

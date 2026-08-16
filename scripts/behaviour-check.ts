@@ -19,7 +19,7 @@ import {
 } from '../src/shared/defaults'
 import { deriveMood, tickPet } from '../src/main/pet'
 import { tickNudges } from '../src/main/nudges'
-import { computeInsights } from '../src/main/insights'
+import { computeInsights, recordSiteTime } from '../src/main/insights'
 import { autoPauseReason } from '../src/main/focus'
 
 let failures = 0
@@ -291,6 +291,35 @@ check(
   nightStrip.some((s) => s.state === 'focused'),
   true
 )
+
+// The write half of the pair, driven the way the extension actually drives it:
+// a report every five seconds. Seeding siteTime by hand proves the panel can
+// render; only this proves anything ever fills it in.
+const reported = state()
+reported.settings.blockedSites = ['youtube.com']
+reported.settings.studySites = ['notion.so']
+const clock = Date.now()
+// Twelve reports of five seconds each = one minute on each site.
+for (let i = 0; i < 12; i++) {
+  recordSiteTime(reported, 'youtube.com', 5000, clock)
+  recordSiteTime(reported, 'notion.so', 5000, clock)
+}
+const fromReports = computeInsights(reported, clock)
+check('reported time reaches the panel', fromReports.topDomains.length, 2)
+check('a minute of reports reads as a minute', fromReports.topDomains[0].minutes, 1)
+check('and lands in the blocked total', fromReports.distractedMinutesWeek, 1)
+
+// Nothing on either list is never named, so an unlisted site cannot leak in
+// through this path even if one were somehow reported.
+const empty = state()
+recordSiteTime(empty, '', 5000, clock)
+check('a nameless report is dropped', Object.keys(empty.siteTime).length, 0)
+
+// Buckets older than the retention window must not pile up forever.
+const old = state()
+recordSiteTime(old, 'youtube.com', 60_000, clock - 30 * 86_400_000)
+recordSiteTime(old, 'youtube.com', 60_000, clock)
+check('stale day buckets are pruned', Object.keys(old.siteTime).length, 1)
 
 // -- the clock stops when the cat is angry ---------------------------------
 //

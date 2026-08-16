@@ -20,6 +20,37 @@ const SLOT_MINUTES = 30
 const STRIP_DEFAULT_START_HOUR = 9
 const STRIP_DEFAULT_END_HOUR = 21
 
+/** Older than this and it's no longer answering "where did this week go". */
+const SITE_TIME_KEEP_DAYS = 14
+
+/**
+ * Add to the running total for a site, bucketed by local day.
+ *
+ * Lives here rather than in the bridge so it can be tested without an Electron
+ * import — the bridge is the only caller, but this is the write half of the
+ * pair that "where the time went" reads, and an untested write path is exactly
+ * how that panel shipped permanently empty the first time.
+ *
+ * Pruned on write rather than on read: this is the only place the map grows,
+ * and a stale bucket nothing reads is still a stale bucket in an exported file.
+ */
+export function recordSiteTime(
+  state: AppState,
+  domain: string,
+  ms: number,
+  now: number
+): void {
+  if (!domain || ms <= 0) return
+  const day = String(startOfLocalDay(now))
+  const bucket = (state.siteTime[day] ??= {})
+  bucket[domain] = (bucket[domain] ?? 0) + ms
+
+  const cutoff = startOfLocalDay(now - SITE_TIME_KEEP_DAYS * 86_400_000)
+  for (const key of Object.keys(state.siteTime)) {
+    if (Number(key) < cutoff) delete state.siteTime[key]
+  }
+}
+
 interface Span {
   from: number
   to: number
