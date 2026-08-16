@@ -1,0 +1,897 @@
+CS Girlies Annual Hackathon - Technology For Wellness
+Build tools to help support wellness, health, and happiness.
+Start project
+Find teammates
+Import from portfolio
+Who can participate
+Above legal age of majority in country of residence
+Students only
+Companies/professional organizations excluded from participation
+All countries/territories, excluding standard exceptions 
+View full rules
+5 more hours to deadline
+View schedule
+
+Deadline
+
+Aug 17, 2026 @ 4:00am GMT+6 
+Online
+Public
+$5,000 in cash	776 participants
+Computer Science Girlies
+Beginner Friendly Machine Learning/AI Social Good
+TECHNOLOGY FOR WELLNESS: A GLOBAL HACKATHON BY CS GIRLIES
+ 
+August 14 - 16, 2025 | Online | 48 Hours | Beginner-Friendly
+ 
+Theme: Building tools for wellness, health, and happiness
+Can technology make wellness more accessible, fun, and attainable? Let’s find out.
+ 
+
+👉 Join the Discord
+ 
+
+Technology For Wellness is a global hackathon where Gen Z creatives, coders, and student developers can build unique and human-first projects that reimagine how we take care of ourselves and others. Whether you’re new to tech or deep in the system already, you’re invited to build something only you could make.
+
+HOW TO JOIN
+Register on DevPost. This is the only way to enter the hackathon.
+
+After registering, join our Discord to access the opening and closing ceremonies, workshops, mentorship sessions, and hackathon related channels.
+
+Optional: Make and share your hackathon participation ID once you have registered! Go to Canva, select "file" in the upper left corner of the menu, and select "make a copy" to edit the file and make it your own! You are not required to use your real name or fill in your social media usernames if that makes you uncomfortable. https://canva.link/gm3vyqfyjkca9dx
+ 
+
+Note: We won’t be matching teams for you, but our #hackathon-team-search Discord channel will help you connect with other builders.
+
+What to Expect
+3 tracks, will be revealed closer to the start of the hackathon
+
+Bonus tracks: Most Viral, Best Use of AI
+
+Projects focused on wellness, health, and happiness
+
+Prizes for originality, impact, and user experience
+
+Global mentor support + an active Discord community
+
+SCHEDULE (EST - UTC-4)
+Friday, August 14 @ 6 PM EST — Opening Ceremony + Hacking Starts
+
+Sunday, August 16 @ 6 PM EST — Submissions Due on DevPost
+
+Sunday, August 30 @ 6 PM EST — Winners Announced on Discord & Devpost
+
+TRACK DESCRIPTIONS:
+The three tracks are: Happiness, Wellness, and Health!
+
+Happiness
+This is our beginner track! We expect to see more fun/lighthearted/story-based projects, such as a compliment generator, random acts of kindness bingo, pet a virtual pet stress reliever, etc. Essentially, projects that do not require such a technical knowledge that works with real health data, but would still contribute to a person's wellness if they used it daily/weekly/monthly.
+
+Wellness
+This is our intermediate track! We expect to see somewhat technical projects, such as a hydration tracker, mood journal, stretch break timer, gratitude journal, etc. Note: If you make a chatbot designed to improve someones mood, be mindful of the guard rails you put in place; your tool should not be vulnerable to negative talk that would make the user's mood/mental health worse.
+
+Health
+This is our advanced track! We expect to see more advanced/technical projects, such as a posture analyzer, voice based mental health screener, medication tracker, etc. (essentially, anything that may be helpful for real health data. It is important to try to add security measures to protect health data to your project, as that would be required for a real life medical system).
+
+We also have our optional / bonus track!
+
+OPT-IN TRACKS (BONUS PRIZES)
+You are encouraged to join these in addition to your main track.
+
+Most Viral
+Post a video of your project showing off its features and letting viewers know why you should win! Eligible platforms include: Instagram, X, YouTube, LinkedIn, TikTok. There will be a submission link open during the judging period, you will have that week to gain views and likes on your videos. The team with the most likes collectively across all of their social media platforms will receive this prize. You are not allowed to use bots to spam like your posts. 
+
+1 team will win $250 USD
+
+Best Use of AI
+This prize will be awarded to the team that uses AI in the most creative way. This only includes writing code, not generating art with AI, or generating documentation.
+
+ 
+
+1 team will win $250 USD
+
+ 
+
+JOIN THE COMMUNITY
+Once you’ve registered on DevPost, hop into our Discord to meet other hackers, join workshops, and attend ceremonies:
+👉 Join Discord
+
+And yes, everyone is welcome! (even if you're not Gen Z or not a girlie!)
+
+Let’s create technology for good!
+
+ 
+
+Questions? Email us at team@csgirlies.com
+
+ 
+
+ 
+
+Requirements
+To be considered for judging and prizes, your Devpost submission must include all of the following:
+
+ 1. Demo Video
+1–5 minutes length. Do not exceed 5 minutes
+
+Hosted on YouTube, Vimeo, Google Drive, etc. (must be accessible)
+
+Show us what your project does. It can be scrappy, but make it clear!
+
+Talk us through your “why” 
+
+ 2. Project Description 
+What does it do?
+
+What inspired it?
+
+What technologies did you use? Did you use AI? If you used AI, what model? Did you use a free or paid tier?
+
+Which track are you submitting to? (You may submit to one main track and one or more bonus tracks)
+
+Note: Please write your project description from scratch without using AI. We want to make sure that you understand what was built. If we discover that AI was used to generate documentation, we will be subtracting documentation and technical points from your overall score. 
+
+ 3. Public Code Repository 
+GitHub, Replit, Glitch, etc.
+
+Should include basic documentation (like a README)
+
+You can include additional files as a ZIP, but repository submission is required
+
+ 4. Team Info
+Add all teammates to the Devpost submission, make it clear what each person contributed
+
+5. Information for Bonus Tracks (Optional, unless you opt in for the track) 
+For “Most Viral” optional track: Submit the links to all of the posts you have made about your project (Instagram, YouTube, TikTok, LinkedIn, etc.) You will be able to submit during the judging period, the team with the most likes across all platforms collectively will win this prize
+
+For “Best Use of AI” optional track: Submit a detailed report of how you used AI in your project. Include the prompts you used, what model(s), whether it was a paid model or not, etc. We will judge this track by how creatively AI was used.
+
+Prizes
+$5,000 in prizes
+First Place Overall
+$2,000 in cash
+1 winner
+Runner Up
+$1,000 in cash
+1 winner
+Most Viral
+$250 in cash
+1 winner
+Best Use of AI
+$250 in cash
+1 winner
+Best In Wellness
+$500 in cash
+1 winner
+Best In Health
+$500 in cash
+1 winner
+Best In Happiness
+$500 in cash
+1 winner
+Devpost Achievements
+Submitting to this hackathon could earn you:
+
+
+X Hackathons
+ level 12
+
+Hackathon Winner
+ level 3
+Judges
+Jay Mehta
+Jay Mehta
+Head of Partnerships- Seldon Capital
+
+Liyaqatali Nadaf
+Liyaqatali Nadaf
+Senior Director of Engineering - Walmart Global Tech
+
+Ankur Bhatnagar
+Ankur Bhatnagar
+Staff Software Engineer - Macy's Systems & Technology
+
+Sarat Mahavratayajula
+Sarat Mahavratayajula
+Senior Software Engineer - Sherwin-Williams
+
+Surya K
+Surya K
+Engineering Manager - Pinterest
+
+Ratna Kumar Bongiri
+Ratna Kumar Bongiri
+Staff Engineer - Macy's Systems & Technology
+
+Jenna Kim
+Jenna Kim
+PhD Candidate in Computer Science - University of Massachusetts Boston
+
+Sunil Kumar Paidi
+Sunil Kumar Paidi
+Lead Software Engineer - Cat
+
+Rohan Khanna
+Rohan Khanna
+Software Engineer - Meta
+
+Jeet Mehta
+Jeet Mehta
+Software Engineer - Netflix
+
+Pranitha Ramaswany
+Pranitha Ramaswany
+Cybersecurity Enthusiast
+
+Divyarani Raghupatruni
+Divyarani Raghupatruni
+Senior Director of Product, Data and Orchestration - Alacritity
+
+Shivam Basia
+Shivam Basia
+Software Engineer(AI) - Intel Corporation
+
+Daniel Haen
+Daniel Haen
+Associate Professor of Computer Science - University of Massachusetts Boston
+
+Venkata Vemuri
+Venkata Vemuri
+Senior Principal Software Developer - Oracle
+
+Sreya Sarathy
+Sreya Sarathy
+Software Engineer | Grace Hopper Celebration & GirlCon Speaker
+
+Nnaemeka Okafor
+Nnaemeka Okafor
+Founder - Zation
+
+Deepak Subramanian 
+Deepak Subramanian
+AI Software Engineer - Kencor Health
+
+Ram Prasad Nethi
+Ram Prasad Nethi
+Senior Solutions Architect - AWS
+
+Emily Forster
+Emily Forster
+
+Judging Criteria
+Wellness Impact
+Does the project help users relax, track their health more accurately, or more creatively? Is it useful or inspiring for users? Would you say that your wellness would improve if you used this app daily or weekly?
+Creativity & Innovation
+Did the team come up with something fresh, original, or unexpected? Ex: New ideas or twists on existing ones, clever ways to use AI to solve problems, Projects that make you go, "Wow, I've never seen that before!"
+Technical Craft & Execution
+Are the prototypes & demos working as intended? Is there smart usage of AI tools, frameworks, APIs, & clear strategic effort? Projects aren't required to have working backend or hosting, but will be awarded higher technical scores if included.
+Design & User Experience
+Is it easy & enjoyable to use? Does it look & feel good? Ex: Clean & intuitive design, clear navigation, UI/UX that feels welcoming, polished & accessible. We encourage you to have fun & be creative, but if that hinders UI/UX you may lose points.
+Community & Accessibility
+Does the project make wellness more inclusive/accessible? Ex: Features that help users from different backgrounds/cultures, efforts to make wellness feel natural/less like a hassle. You may lose points if AI usage hinders the accessibility of the project.
+
+
+
+
+idea:
+Pawse: An Agentic Pixel Cat for Focus and Digital Wellness
+Track
+
+Wellness — Intermediate Track
+
+One-Line Pitch
+
+Pawse is a privacy-first pixel cat that lives on the corner of the user’s screen, turns real tasks from Notion and assignment files into adventures, protects the user from digital distractions, and encourages healthier work habits through gentle reminders and virtual-pet progression.
+
+The Problem
+
+Students and computer users often struggle with several connected problems:
+
+Unintentional social-media scrolling
+Frequent interruptions during focused work
+Forgetting tasks and deadlines across different platforms
+Difficulty breaking large assignments into manageable steps
+Excessive uninterrupted screen time
+Forgetting to drink water, stretch or rest their eyes
+Productivity applications feeling stressful, mechanical or punitive
+
+Existing productivity tools usually require users to continuously maintain task lists, manually start timers and monitor their own behavior. Website blockers can also be overly restrictive because they block entire platforms even when parts of those platforms are useful.
+
+For example, a student might need YouTube for a tutorial but become distracted by Shorts and recommendations. They might have an assignment written in Notion but forget one of its submission requirements. Even when they use a Pomodoro timer, the experience can feel like another obligation rather than a supportive system.
+
+The Solution
+
+Pawse combines five systems into one application:
+
+An interactive pixel pet
+A focus and task-management system
+An attention gatekeeper
+A Notion-powered task scavenger
+A real-task-to-adventure generator
+
+The cat does not simply send notifications. It understands the user’s current task, prepares a suitable focus environment, hides unnecessary distractions, remembers commitments and transforms completed work into progress inside the pet’s world.
+
+The design is supportive rather than punishing. Missing a task never causes the cat to become sick, hungry or upset. The cat rewards progress, recovery and intentional rest without using guilt.
+
+The Pixel Cat
+
+The cat lives inside a small transparent, always-on-top desktop window.
+
+The user can:
+
+Drag it anywhere on the screen
+Pet it with the cursor
+Pick it up and move it
+Feed it
+Give it water
+Play with it
+Dress it in unlocked outfits
+Give it toys
+Decorate its room
+Rename it
+Select its personality
+Temporarily hide it
+Enable quiet or do-not-disturb mode
+
+The cat reacts to the user’s current activity:
+
+It studies while the user works.
+It stretches during stretch breaks.
+It waters its plants when the user drinks water.
+It sleeps when the computer is idle.
+It waves after prolonged scrolling.
+It celebrates when a focus session finishes.
+It puts on glasses when the user reads.
+It becomes sleepy during the user’s selected wind-down time.
+It carries task reminders onto the screen as small paper scrolls.
+It pushes distracting content away during deep-work mode.
+
+Possible personalities include calm, playful, sleepy, chaotic, encouraging and studious.
+
+Focus and Study System
+
+Pawse contains a complete focus system rather than only a basic Pomodoro timer.
+
+Focus modes
+Standard Pomodoro
+Custom focus and break durations
+Stopwatch mode
+Deep-work mode
+Gentle focus mode
+Strict focus mode
+Website blocking
+Application blocking
+Automatic break suggestions
+Session intention
+Session-specific checklist
+Pause and idle detection
+
+Before starting, the cat asks:
+
+“What are we working on?”
+
+The user selects or creates a task, estimates how long it will take and chooses the desired focus mode.
+
+A focus session records:
+
+Intended task
+Planned duration
+Actual active working time
+Idle time
+Distracting time
+Number of interruptions
+Completed checklist items
+Estimated versus actual completion time
+Longest uninterrupted period
+
+At the end, the cat provides a short summary:
+
+“You worked for 47 active minutes, completed three of four checklist items and returned from two distractions. The testing section remains unfinished. Should I save it as our next chapter?”
+
+Attention Gatekeeper
+
+The Attention Gatekeeper is one of Pawse’s main distinguishing features.
+
+During a focus session, the cat knows what the user intends to accomplish and adjusts the digital environment accordingly.
+
+Contextual website control
+
+Instead of blocking entire websites, Pawse can hide only their distracting parts.
+
+YouTube Focus Mode
+
+Pawse can allow:
+
+Search
+Selected tutorials
+Saved course playlists
+Videos related to the current task
+
+It can hide:
+
+Shorts
+Homepage recommendations
+Suggested videos
+Comments
+Autoplay
+Unrelated sidebars
+Social Media Communication Mode
+
+Pawse can allow:
+
+Direct messages
+Specific groups
+User-approved pages
+
+It can hide:
+
+News feeds
+Reels
+Explore pages
+Trending content
+Infinite recommendations
+Research Mode
+
+On Reddit, news sites or forums, Pawse can allow the selected article or discussion while hiding home feeds, trending topics and unrelated recommendations.
+
+New-site relevance check
+
+If the user opens a potentially distracting website during focus, the cat asks:
+
+“Does this page help with our current chapter?”
+
+The user can choose:
+
+Yes, allow it
+Allow it for five minutes
+Save it for later
+Block it until the break
+Return to the previous task
+
+A page saved for later goes into a local reading list or a Notion “Curiosity Box.”
+
+Gentle anti-doomscrolling
+
+Pawse observes signals such as:
+
+Time spent on a distracting website
+Continuous scrolling
+Frequent tab switching
+Low relevance to the active task
+Repeated short-video navigation
+Whether leisure time was intentionally started
+
+When the system detects possible unintentional scrolling, it does not immediately block the user. The cat appears and asks:
+
+“Still enjoying this, or did we get stuck scrolling?”
+
+Available actions include:
+
+Continue intentionally
+Give me five more minutes
+Start a break
+Block this website
+Return to my task
+Save this page for later
+
+In gentle mode, the website may first become grayscale and lose its recommendation feed. In strict mode, the site can be blocked until the focus session ends.
+
+Notification batching
+
+During deep work, Pawse can hold nonurgent application reminders and its own wellness notifications until the next suitable break.
+
+It does not postpone important medication alerts without explicit user settings.
+
+Task Scavenger
+
+The Task Scavenger searches information that the user explicitly connects or uploads.
+
+Supported sources can include:
+
+Notion workspaces
+Assignment PDFs
+Course outlines
+Personal notes
+Task databases
+Checklists
+Study plans
+Calendar-style Notion databases
+
+The cat extracts:
+
+Deadlines
+Task names
+Submission requirements
+Required files
+Required versus optional work
+Existing checklist items
+Unfinished tasks
+Upcoming quizzes
+Repeated routines
+Estimated workload
+Conflicting deadlines
+
+For example, the cat may read an assignment page and report:
+
+“I found a deadline, five required submission files and seven implementation requirements. Your current checklist is missing test-case preparation. Should I add it?”
+
+Extracted information is always shown to the user for approval. Pawse does not silently invent or modify academic requirements.
+
+Notion Integration
+
+Users can connect selected Notion pages and task databases to Pawse.
+
+Pawse can:
+
+Read approved task databases
+Read selected assignment pages
+Import task names, statuses and deadlines
+Extract checklist items
+Identify upcoming work
+Create approved tasks
+Update a task after completion
+Synchronize quest chapters with Notion tasks
+Create a “Curiosity Box” for pages saved during focus
+Create a progress log for completed adventures
+
+The user chooses exactly which pages Pawse can access.
+
+For example:
+
+Notion task:
+Implement semantic error detection
+
+Pawse chapter:
+Defeat the Semantic Error Bugs
+
+When the user completes the chapter, Pawse asks:
+
+“Should I mark ‘Implement semantic error detection’ as complete in Notion?”
+
+The update occurs only after confirmation.
+
+For an initial prototype, Pawse can connect to one shared Notion task database and synchronize manually. A later version can use OAuth, automatic synchronization and multiple workspaces.
+
+Pet-Generated Adventures
+
+Pawse transforms real projects into interactive pixel adventures.
+
+The generated story does not replace the original requirements. It provides a playful layer over the real task structure.
+
+Example adventure
+The Compiler Kingdom
+
+Chapter 1: Decode the Ancient Specification
+Read the assignment and identify all requirements.
+
+Chapter 2: Repair the Grammar Gate
+Complete and compile the grammar.
+
+Chapter 3: Recruit the Symbol Keeper
+Implement symbol-table operations.
+
+Chapter 4: Defeat the Semantic Error Bugs
+Implement semantic checking.
+
+Chapter 5: Enter the Testing Dungeon
+Run valid and invalid test programs.
+
+Final Chapter: Deliver the Royal Archive
+Prepare and verify the submission files.
+
+Adventure themes
+
+Users can choose between:
+
+Fantasy kingdom
+Magical library
+Space expedition
+Detective mystery
+Cozy village
+Pirate voyage
+Cyberpunk city
+Archaeological expedition
+Quest rewards
+
+Every completed chapter unlocks an item related to the adventure:
+
+Real achievement	Pet-world reward
+Read the specification	Ancient map
+Finish the grammar	Magic key
+Complete a coding component	Workshop furniture
+Pass the test cases	Victory banner
+Finish a difficult project	New room
+Return after distraction	Recovery badge
+Take consistent breaks	Cozy furniture
+Finish an entire adventure	Special outfit and story scene
+
+This creates a meaningful connection between real progress and the pet’s world.
+
+Wellness Reminders
+
+Pawse supports customizable reminders for:
+
+Water
+Stretching
+Eye rest
+Standing
+Walking
+Meals
+Sleep and wind-down routines
+Medication schedules
+User-created reminders
+
+Instead of only displaying text, the cat demonstrates the activity.
+
+Examples:
+
+The cat performs a shoulder roll.
+The cat looks through a window during an eye break.
+The cat carries an empty glass during a water reminder.
+The cat puts on pajamas during wind-down time.
+
+The reminder engine considers context:
+
+It waits until a focus session ends when appropriate.
+It avoids interrupting presentations and full-screen activities.
+It combines nearby nonurgent reminders.
+It recognizes when the computer is idle.
+It respects quiet hours.
+It reduces unnecessary repeated alerts.
+It allows gentle, normal and persistent reminder styles.
+
+Medication schedules are treated differently from normal wellness reminders. Pawse only follows information entered by the user and never recommends medication or dosage. It distinguishes between:
+
+Reminder displayed
+Reminder acknowledged
+User confirmed medication taken
+
+The cat never confirms medication automatically.
+
+Mood and Energy Check-Ins
+
+Pawse occasionally asks:
+
+“How is your energy right now?”
+
+The user can choose:
+
+Energized
+Okay
+Tired
+Overwhelmed
+Restless
+
+The result influences planning:
+
+Energized → suggest a difficult task
+Okay → continue the normal plan
+Tired → suggest a shorter or easier session
+Restless → recommend a movement break
+Overwhelmed → divide the current task into smaller chapters
+
+These check-ins support self-reflection. Pawse does not diagnose depression, anxiety, burnout or any other medical condition.
+
+Rewards and Pet Progression
+
+Completing real activities provides resources for the pet.
+
+User action	Pet resource
+Completing a task	Food
+Drinking water	Water droplets
+Stretching	Energy stars
+Taking an eye break	Dream dust
+Confirming medication	Care token
+Completing a focus session	Building material
+Leaving a doomscrolling session	Recovery crystal
+Finishing a project	Rare furniture
+
+Resources can be used to unlock:
+
+Food
+Clothing
+Hats
+Glasses
+Toys
+Furniture
+Wallpapers
+Plants
+Animations
+Additional rooms
+Adventure souvenirs
+
+The pet is never harmed when the user misses an activity. There are no punishing streak resets.
+
+Daily and Weekly Insights
+
+Pawse provides an analytics dashboard containing:
+
+Productive time
+Distracting time
+Focus sessions
+Completed tasks
+Estimated versus actual task time
+Water confirmations
+Stretch breaks
+Eye-rest breaks
+Medication confirmations
+Most distracting website
+Most productive time period
+Reminder response rate
+Mood and energy patterns
+Frequency of returning after distraction
+
+The cat translates statistics into understandable observations:
+
+“Your longest focused periods occurred between 8:00 PM and 10:00 PM.”
+
+“Forty-minute sessions worked better than 25-minute sessions this week.”
+
+“You were interrupted several times while working in Chrome. Would you like to use the Gatekeeper during tomorrow’s session?”
+
+These are personal observations, not medical conclusions.
+
+Agentic Behaviour
+
+Pawse uses a bounded agentic system.
+
+The cat can:
+
+Examine user-approved information
+Identify commitments
+Propose task structures
+Generate adventures
+Prepare a focus environment
+Decide when a gentle intervention may help
+Select a suitable pet reaction
+Suggest changes based on previous sessions
+Request approved actions from the website blocker, timer or Notion integration
+
+The agent does not receive unrestricted control over the computer.
+
+Actions such as blocking a website, changing a Notion task or postponing a schedule require user approval. Timers, animations, activity calculations and user-configured focus rules can operate automatically.
+
+Privacy and Safety
+
+Pawse is designed around minimal data collection.
+
+Privacy principles
+Activity analysis happens locally whenever possible.
+The system records domains rather than complete browsing content.
+It counts keyboard activity but never records typed text.
+Incognito browsing is excluded.
+Users can pause all tracking.
+Users can inspect, export or delete their history.
+Notion access is limited to selected pages.
+Authentication tokens are encrypted.
+Medication records are stored securely.
+Personal information is never used for advertising.
+Health and productivity data are not shared by default.
+Safety limits
+
+Pawse never:
+
+Diagnoses mental or physical conditions
+Recommends medication or dosage
+Confirms medication without user action
+Sends messages without permission
+Submits assignments
+Deletes files
+Makes purchases
+Shares browsing or wellness history
+Uses shame to force productivity
+Technical Components
+
+The full system can contain:
+
+Desktop application
+
+Responsible for:
+
+Pixel-pet window
+Animations
+Focus timer
+Task manager
+Reminder scheduler
+Pet inventory and rooms
+Daily history
+Desktop activity detection
+
+Possible technology:
+
+Tauri with React, or
+Electron with React, or
+Python with PySide6 for an earlier prototype
+Chrome extension
+
+Responsible for:
+
+Active-tab monitoring
+Time-per-domain tracking
+Continuous-scroll detection
+Tab-switch tracking
+Feed and recommendation removal
+Grayscale mode
+Website blocking
+Communication with the desktop pet
+Backend service
+
+Responsible for:
+
+Notion integration
+Secure token handling
+Optional adventure generation
+Synchronization
+User accounts if required
+Local database
+
+Stores:
+
+Tasks
+Reminders
+Focus sessions
+Activity summaries
+Pet state
+Rewards
+Quest progress
+User preferences
+
+SQLite is sufficient for the prototype.
+
+Minimum Viable Product
+
+The first working version should include:
+
+Draggable animated pixel cat
+Petting and feeding interactions
+Water, stretch and eye-rest reminders
+Custom alerts
+Pomodoro and custom focus timers
+Task checklist
+Chrome domain-time tracking
+Continuous-scroll detection
+YouTube Shorts and recommendation hiding
+Gentle anti-doomscrolling prompt
+One connected Notion task database
+Task-to-adventure generation
+Task completion rewards
+Basic daily history
+Local data storage
+Advanced Version
+
+After the core system works, Pawse can add:
+
+Application blocking
+More social-media focus modes
+Automatic Notion synchronization
+Full assignment-page extraction
+Deadline conflict detection
+Multiple adventure themes
+Expanded pet rooms
+Weekly insights
+Advanced notification batching
+Multiple pets and personalities
+Shared focus sessions
+Mobile companion
+Optional posture-awareness features
+What Makes Pawse Unique
+
+Pawse is not simply:
+
+A Pomodoro timer
+A website blocker
+A Notion task manager
+A wellness reminder
+A virtual pet
+
+Its main innovation is connecting all of these components into one meaningful cycle:
+
+Real commitments are discovered from the user’s existing workspace, transformed into playful adventures, protected through context-aware attention tools and rewarded through the growth of a virtual pixel companion.
+
+The system helps users work, rest and recover from distraction without shame. The cat functions as both an emotional companion and an active guardian of the user’s digital environment.
+
+Final Project Description
+
+Pawse is a privacy-first agentic pixel cat designed to improve everyday digital wellness. It lives in the corner of the user’s screen, provides contextual water, stretch, eye-rest and medication reminders, and supports focused work through customizable timers and task checklists. By connecting to user-approved Notion pages and assignment files, Pawse can discover deadlines and requirements and transform them into interactive pixel adventures. During each adventure, its Attention Gatekeeper hides distracting page elements, limits unintentional scrolling and protects the user’s focus without completely blocking useful websites. Completing real tasks and wellness activities earns food, furniture, outfits and story progress for the pet. Pawse combines productivity, self-care, gentle digital-boundary management and virtual-pet companionship without medical diagnosis, punitive streaks or invasive monitoring.
+
+
