@@ -167,7 +167,7 @@ export async function fetchPageText(
   /** Databases hold their content as rows, which are not blocks. */
   object: 'page' | 'database' = 'page'
 ): Promise<string> {
-  const budget = { blocks: MAX_BLOCKS }
+  const budget: Budget = { blocks: MAX_BLOCKS, seen: new Set([pageId]) }
   const lines =
     object === 'database'
       ? await readDatabaseRows(notion.token, pageId, budget)
@@ -183,11 +183,34 @@ export async function fetchPageText(
   return text.slice(0, MAX_TEXT_CHARS)
 }
 
+/**
+ * Blocks that exist only to hold other blocks. They contribute no text of their
+ * own, so they must not consume depth — a paragraph inside a column inside a
+ * toggle is one level of meaning, not three, and counting it as three is how
+ * real content ends up just past the depth limit.
+ */
+const CONTAINER_BLOCKS = new Set([
+  'column_list',
+  'column',
+  'synced_block',
+  'toggle',
+  'callout',
+  'bulleted_list_item',
+  'numbered_list_item',
+  'to_do'
+])
+
+interface Budget {
+  blocks: number
+  /** Pages already read, so a pair of pages linking to each other can't loop. */
+  seen: Set<string>
+}
+
 async function readChildren(
   token: string,
   blockId: string,
   depth: number,
-  budget: { blocks: number }
+  budget: Budget
 ): Promise<string[]> {
   if (depth > MAX_BLOCK_DEPTH || budget.blocks <= 0) return []
 
@@ -221,9 +244,20 @@ async function readChildren(
         continue
       }
 
+      /**
+       * A planner page is often nothing but links to the pages holding the
+       * real work. Following them is the difference between importing an
+       * index and importing the plan.
+       */
+      if (block.type === 'link_to_page') {
+        out.push(...(await readLinkedPage(token, block, depth, budget)))
+        continue
+      }
+
       // Toggles and list items routinely hold the actual detail as children.
       if (block.has_children) {
-        out.push(...(await readChildren(token, block.id, depth + 1, budget)))
+        const nested = CONTAINER_BLOCKS.has(block.type) ? depth : depth + 1
+        out.push(...(await readChildren(token, block.id, nested, budget)))
       }
     }
 
@@ -231,6 +265,39 @@ async function readChildren(
   } while (cursor && budget.blocks > 0)
 
   return out
+}
+
+/**
+ * Follow a link to another page or database.
+ *
+ * Failures here are swallowed on purpose: a linked page the integration was
+ * never shared with is the normal case, not an error worth aborting a whole
+ * import over. The rest of the page is still worth having.
+ */
+async function readLinkedPage(
+  token: string,
+  block: Block,
+  depth: number,
+  budget: Budget
+): Promise<string[]> {
+  const link = block.link_to_page as
+    | { type?: string; page_id?: string; database_id?: string }
+    | undefined
+  const targetId = link?.page_id ?? link?.database_id
+  if (!targetId || budget.seen.has(targetId) || depth > MAX_BLOCK_DEPTH) return []
+  budget.seen.add(targetId)
+
+  try {
+    if (link?.database_id) {
+      return await readDatabaseRows(token, link.database_id, budget)
+    }
+    const page = (await callNotion(token, `/pages/${targetId}`)) as Record<string, unknown>
+    const title = titleOf(page)
+    const body = await readChildren(token, targetId, depth + 1, budget)
+    return title ? [`\n## ${title}`, ...body] : body
+  } catch {
+    return []
+  }
 }
 
 /**
@@ -244,7 +311,7 @@ async function readChildren(
 async function readDatabaseRows(
   token: string,
   databaseId: string,
-  budget: { blocks: number }
+  budget: Budget
 ): Promise<string[]> {
   if (budget.blocks <= 0) return []
 

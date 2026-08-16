@@ -253,6 +253,7 @@ function NotionPicker({
   const [query, setQuery] = useState('')
   const [pages, setPages] = useState<NotionPage[] | null>(null)
   const [error, setError] = useState('')
+  const [importingId, setImportingId] = useState<string | null>(null)
   const busy = state.runtime.notionBusy || state.runtime.llmBusy
   const hasToken = notionSettingsOf(state.settings).token.trim().length > 0
 
@@ -264,6 +265,25 @@ function NotionPicker({
       setPages(null)
       setError(res.error ?? 'could not reach Notion')
     }
+  }
+
+  /**
+   * Importing has to report its own failures. Firing this off and ignoring the
+   * result meant a page that couldn't be read did nothing at all when clicked —
+   * the reason sat in a console the user has no way to open, and the button
+   * looked simply broken.
+   */
+  const importPage = async (page: NotionPage): Promise<void> => {
+    setError('')
+    setImportingId(page.id)
+    const res = await send({
+      type: 'notion:import',
+      pageId: page.id,
+      object: page.object,
+      theme
+    })
+    setImportingId(null)
+    if (!res.ok) setError(res.error ?? 'could not read that page')
   }
 
   if (!hasToken) {
@@ -325,16 +345,9 @@ function NotionPicker({
               <button
                 className="btn btn-sm btn-primary"
                 disabled={busy}
-                onClick={() =>
-                  void send({
-                    type: 'notion:import',
-                    pageId: page.id,
-                    object: page.object,
-                    theme
-                  })
-                }
+                onClick={() => void importPage(page)}
               >
-                {busy ? '…' : 'Use this'}
+                {importingId === page.id ? 'reading…' : 'Use this'}
               </button>
             </div>
           ))}
