@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import type { AppState, Bubble, Personality } from '@shared/types'
+import { isProperlyAngry } from './pet'
 
 /**
  * The cat speaking up on its own — a check-in, a bit of encouragement, or a
@@ -37,6 +38,9 @@ const RESPECT_SILENCE_MS = 45_000
 /** How soon the cat speaks up once you've drifted onto a feed mid-session. */
 const DISTRACTED_INTERVAL_MS = 40_000
 
+/** Angry is more insistent than unimpressed, but still not a stream of abuse. */
+const ANGRY_INTERVAL_MS = 25_000
+
 /** Long enough at the keyboard with nothing running to be worth a word. */
 const LOITER_MS = 6 * 60_000
 
@@ -51,6 +55,7 @@ type Context =
   | 'late_night'
   | 'resting'
   | 'distracted'
+  | 'angry'
 
 type Lines = Partial<Record<Personality, string[]>> & { any: string[] }
 
@@ -175,6 +180,42 @@ const LINES: Record<Context, Lines> = {
     sleepy: ['even i am more awake than this. come back.'],
     encouraging: ['no harm done. come back and we carry on.'],
     studious: ['back to it. the chapter is waiting.']
+  },
+
+  /**
+   * Asked once, ignored, still scrolling. The cat is drawn properly furious by
+   * now, and a cross face over a mild line reads as a bug — so it raises its
+   * voice here, and only here.
+   *
+   * Angry at the situation, never contemptuous of the person. Everything the
+   * rest of the app refuses to do still applies: no tallies, no "you always do
+   * this", no comparison, nothing about character. It is a shout to get someone
+   * to look up, and every one of these still ends pointing at the way back.
+   */
+  angry: {
+    any: [
+      'OI. put it down.',
+      'i asked nicely. i am done asking nicely.',
+      'HEY. eyes up. the timer is still going.',
+      'no. we are not doing this. close the tab.',
+      'that is enough of that. back. now.',
+      'i am not watching this happen for another minute.',
+      'STOP. you picked something. go and do it.',
+      'this is the bit you said you did not want to do again.',
+      'seriously. shut it and come back.'
+    ],
+    calm: ['no. not this. close it and come back.', 'i am cross now. close the tab.'],
+    playful: [
+      'RIGHT. that is it. paws down.',
+      'i will sit on the keyboard. do not test me.',
+      'hissing. actually hissing.'
+    ],
+    sleepy: ['you have made me get UP. close it.', 'i woke up for this. close the tab.'],
+    encouraging: [
+      'no. you are better than this tab and we both know it. come back.',
+      'i am angry because you wanted this one. come on.'
+    ],
+    studious: ['ENOUGH. the chapter is open and waiting.', 'close it. the work is right there.']
   }
 }
 
@@ -216,7 +257,13 @@ function chooseContext(
     // honoured here too — asking again inside the window you just granted is
     // exactly the nagging this is meant to avoid.
     const snoozed = runtime.doomscrollSnoozeUntil && now < runtime.doomscrollSnoozeUntil
-    if (isDistracted && !snoozed) return 'distracted'
+    // Escalates only after the gentler version has had its chance: the same
+    // stretch of scrolling, gone on long enough that "psst" clearly didn't
+    // land. Snooze still wins — "five more minutes" was granted, so shouting
+    // inside the window you just agreed to would be a betrayal, not a nudge.
+    if (isDistracted && !snoozed) {
+      return isProperlyAngry(state, now) ? 'angry' : 'distracted'
+    }
     if (isDistracted) return null
     const elapsed = now - session.startedAt
     return elapsed > 25 * 60_000 ? 'deep_in_it' : 'working'
@@ -256,7 +303,12 @@ export function tickNudges(
 
   // Being pulled off a session you started is worth saying sooner than a
   // routine bit of encouragement.
-  const wait = isDistracted && state.session ? DISTRACTED_INTERVAL_MS : intervalFor(settings.talkativeness)
+  const wait =
+    isDistracted && state.session
+      ? isProperlyAngry(state, now)
+        ? ANGRY_INTERVAL_MS
+        : DISTRACTED_INTERVAL_MS
+      : intervalFor(settings.talkativeness)
   const last = runtime.lastNudgeAt ?? 0
   if (now - last < wait) return
 
@@ -311,6 +363,25 @@ function buildNudge(context: Context, state: AppState, now: number): Bubble {
           {
             id: 'five',
             label: 'five more minutes',
+            intent: { type: 'doomscroll:continue', minutes: 5 }
+          }
+        ]
+      }
+
+    /**
+     * The way out stays on the table even here. A cat that shouts and leaves
+     * you no answer is a cat you close permanently — and someone who genuinely
+     * needs five more minutes should still be able to say so, however cross it
+     * is about it.
+     */
+    case 'angry':
+      return {
+        ...base,
+        actions: [
+          { id: 'return', label: 'fine, fine', intent: { type: 'doomscroll:return' } },
+          {
+            id: 'five',
+            label: 'i really do need five',
             intent: { type: 'doomscroll:continue', minutes: 5 }
           }
         ]

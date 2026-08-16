@@ -200,8 +200,31 @@ const EYES_CROSS = layer({
   7: '....ee....ee....'
 })
 
+/**
+ * Furious, and it has to read at 16px: the brows run the full width and meet
+ * over the nose, and the eyes narrow to slits under them. A steeper version of
+ * EYES_CROSS rather than a different idea, so escalation looks like the same
+ * cat getting crosser instead of a second character.
+ */
+const EYES_FURIOUS = layer({
+  5: '..eee......eee..',
+  6: '...eee....eee...',
+  7: '....ee....ee....'
+})
+
 /** A flat, unamused line. */
 const MOUTH_FLAT = layer({ 10: '.....oooooo.....' })
+
+/**
+ * Wide open, mid-shout. Three rows with the inside showing and a closed bottom
+ * edge — without that edge the dark blob runs straight into the belly and reads
+ * as a beard rather than a mouth.
+ */
+const MOUTH_SHOUT = layer({
+  10: '.....oooooo.....',
+  11: '.....oppppo.....',
+  12: '......oooo......'
+})
 
 /** An exclamation mark floating beside the head. */
 const ALERT = layer({
@@ -210,6 +233,21 @@ const ALERT = layer({
   3: '..............x.',
   5: '..............x.'
 })
+
+/** Two of them, one either side, for when one is not enough. */
+const ALERT_DOUBLE = stack(
+  ALERT,
+  layer({
+    1: '.x..............',
+    2: '.x..............',
+    3: '.x..............',
+    5: '.x..............'
+  })
+)
+
+/** Steam off the ears. Small, but it's what tips cross over into angry. */
+const STEAM_A = layer({ 0: '..x........x....', 1: '.x..........x...' })
+const STEAM_B = layer({ 0: '.x..........x...', 1: '..x........x....' })
 
 // ---------------------------------------------------------------------------
 // Props
@@ -307,6 +345,30 @@ const CROSS_BASE = stack(
 )
 const CROSS_ALERT = stack(CROSS_BASE, ALERT)
 
+/**
+ * Properly angry — the escalation of the pose above, for when the check-in has
+ * already been ignored. Deeper red, ears fully back, brows meeting, mouth open
+ * mid-shout, steam. It shakes by a pixel because a still frame at this size
+ * reads as a drawing of anger rather than as anger.
+ */
+const ANGRY_BASE = stack(
+  recolor(SITTING, 'f', 'x'),
+  recolor(
+    layer({ 1: '...~........~...', 2: '.rr..........rr.' }),
+    'r',
+    'x'
+  ),
+  EYES_FURIOUS,
+  MOUTH_SHOUT
+)
+const ANGRY_A = stack(ANGRY_BASE, ALERT_DOUBLE, STEAM_A)
+/** Same pose jolted a pixel sideways, with the steam on its other beat. */
+const ANGRY_B = stack(
+  ANGRY_BASE.map((row) => row.slice(1) + '.'),
+  ALERT_DOUBLE,
+  STEAM_B
+)
+
 export const MOOD_SPRITES: Record<CatMood, MoodSprite> = {
   // A long hold then a fast shut is what makes a blink read as a blink.
   idle: {
@@ -367,6 +429,12 @@ export const MOOD_SPRITES: Record<CatMood, MoodSprite> = {
   distracted: {
     caption: 'unimpressed',
     frames: [f(CROSS_ALERT, 520), f(CROSS_BASE, 380)]
+  },
+
+  // Faster than any other loop on purpose: the twitch is the tell.
+  angry: {
+    caption: 'furious',
+    frames: [f(ANGRY_A, 200), f(ANGRY_B, 200)]
   },
 
   curious: {

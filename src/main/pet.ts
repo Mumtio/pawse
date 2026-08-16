@@ -138,14 +138,31 @@ export function advanceMoodQueue(state: AppState, now: number): boolean {
   return true
 }
 
+/**
+ * How long on a feed, mid-session, before unimpressed turns into angry.
+ *
+ * Long enough that looking something up never trips it, short enough that it
+ * lands while you're still scrolling rather than as a verdict afterwards.
+ */
+export const ANGRY_AFTER_MS = 3 * 60_000
+
+/** True once a distraction has run long enough to earn the cross face. */
+export function isProperlyAngry(state: AppState, now: number): boolean {
+  const since = state.runtime.distractedSince
+  return Boolean(state.session && since && now - since > ANGRY_AFTER_MS)
+}
+
 /** The mood the cat settles back into once any transient one expires. */
 export function deriveMood(state: AppState, isIdle: boolean, isDistracted = false): CatMood {
   const { pet, session } = state
   if (pet.moodUntil && pet.moodUntil > Date.now()) return pet.mood
   if (isIdle) return 'sleeping'
   // Being on a feed mid-session outranks everything else the cat could be
-  // showing — it's the one thing it should not look pleased about.
-  if (session && isDistracted) return 'distracted'
+  // showing — it's the one thing it should not look pleased about. Ignore it
+  // long enough and unimpressed escalates to properly cross.
+  if (session && isDistracted) {
+    return isProperlyAngry(state, Date.now()) ? 'angry' : 'distracted'
+  }
   if (session && !session.paused) return session.phase === 'break' ? 'break' : 'studying'
   if (pet.health <= HEALTH_FLOOR + 2) return 'drowsy'
   return 'idle'

@@ -23,8 +23,13 @@ export type CatMood =
   | 'drowsy'
   /** Set by the cat window while it's being dragged; never derived in main. */
   | 'held'
-  /** Session running, but you're on a feed. The one unhappy face the cat has. */
+  /** Session running, but you're on a feed. Unimpressed — the first warning. */
   | 'distracted'
+  /**
+   * Still on the feed well after being asked about it. The only genuinely
+   * cross face, and the only place the cat is allowed to raise its voice.
+   */
+  | 'angry'
 
 export type Personality = 'calm' | 'playful' | 'sleepy' | 'encouraging' | 'studious'
 
@@ -261,6 +266,17 @@ export interface Settings {
   idleThresholdMin: number
   showHud: boolean
   doomscrollSensitivity: 'relaxed' | 'normal' | 'watchful'
+  /**
+   * Domains the cat treats as distracting: hidden by the Gatekeeper during a
+   * session, and counted as distracted time. Seeded with the usual suspects,
+   * and entirely yours to edit.
+   */
+  blockedSites: string[]
+  /**
+   * Domains that never count as distracting, whatever else matches. Checked
+   * first, so a study channel on an otherwise-blocked host stays reachable.
+   */
+  studySites: string[]
 
   reminderStyle: 'gentle' | 'normal' | 'persistent'
   holdNonUrgent: boolean
