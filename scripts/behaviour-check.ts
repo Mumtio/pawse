@@ -395,6 +395,17 @@ check(
   true
 )
 
+// A database row imports as one line of properties. It must still produce a
+// chapter, and must not keep the "Field: —" padding Notion uses for blanks.
+const rowLine = 'Philosophy Paper Deadline — Exam Date: 2026-09-25 · Exam Room: Hall 3'
+const rowQuest = localQuest(rowLine, 'fantasy kingdom', 'notion')
+check('a single database row still makes a quest', rowQuest.chapters.length, 1)
+check('the row keeps its detail', rowQuest.chapters[0].realTask.includes('2026-09-25'), true)
+
+// Notion titles routinely start with an emoji icon, which reads as a glitch.
+const emojiTitled = ['# 📶 Study Plan', '- Read chapter 4', '- Draft the essay'].join('\n')
+check('a leading emoji is not part of the title', localQuest(emojiTitled, 'x', 'notion').title, 'Study Plan')
+
 // -- how often the cat speaks ----------------------------------------------
 
 check('silence is described as silence', describeNudgeInterval(0).includes('never'), true)

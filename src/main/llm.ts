@@ -370,12 +370,17 @@ export function localQuest(text: string, theme: string, source: QuestSource = 'p
  * reads back, which is how a chapter ended up titled "# Study Plan".
  */
 function stripMarkers(line: string): string {
-  return line
-    .replace(/^[\s>*\-•]+/, '')
-    .replace(/^#{1,6}\s*/, '')
-    .replace(/^\d+[.)]\s*/, '')
-    .replace(/^\[[ xX]\]\s*/, '')
-    .trim()
+  return (
+    line
+      .replace(/^[\s>*\-•]+/, '')
+      .replace(/^#{1,6}\s*/, '')
+      .replace(/^\d+[.)]\s*/, '')
+      .replace(/^\[[ xX]\]\s*/, '')
+      // Notion page titles routinely start with an emoji icon. Kept out of
+      // titles and tasks alike, where it reads as a glitch: "📶study Plan".
+      .replace(/^[^\p{L}\p{N}"'(]+/u, '')
+      .trim()
+  )
 }
 
 function nounPhrase(task: string): string {

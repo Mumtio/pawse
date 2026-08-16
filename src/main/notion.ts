@@ -168,19 +168,52 @@ export async function fetchPageText(
   object: 'page' | 'database' = 'page'
 ): Promise<string> {
   const budget: Budget = { blocks: MAX_BLOCKS, seen: new Set([pageId]) }
-  const lines =
-    object === 'database'
-      ? await readDatabaseRows(notion.token, pageId, budget)
-      : await readChildren(notion.token, pageId, 0, budget)
 
-  const text = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
-
-  if (!text) {
-    throw new Error(
-      'That page came back empty. If its content lives on sub-pages, share those with your integration too.'
-    )
+  if (object === 'database') {
+    const rows = await readDatabaseRows(notion.token, pageId, budget)
+    return finish(rows, 'That database has no rows yet.')
   }
+
+  const lines = await readChildren(notion.token, pageId, 0, budget)
+
+  /**
+   * A row in a database is a page whose body is usually empty — everything
+   * that matters (due date, course, status) lives in its properties. Reading
+   * only its blocks reports it as empty, which is how "Philosophy Paper
+   * Deadline" came back with nothing despite being a perfectly good task.
+   *
+   * Only a fallback, never a prefix: on a page that does have content, its own
+   * title is not a task, and prepending it adds a chapter for reading the
+   * page you are already reading.
+   */
+  if (lines.length === 0) {
+    lines.push(...(await readPageProperties(notion.token, pageId)))
+  }
+
+  return finish(
+    lines,
+    'That page came back empty. If its content lives on sub-pages, share those with your integration too.'
+  )
+}
+
+function finish(lines: string[], emptyMessage: string): string {
+  const text = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
+  if (!text) throw new Error(emptyMessage)
   return text.slice(0, MAX_TEXT_CHARS)
+}
+
+/** The page's own title and properties, for rows that carry their work there. */
+async function readPageProperties(token: string, pageId: string): Promise<string[]> {
+  try {
+    const page = (await callNotion(token, `/pages/${pageId}`)) as Record<string, unknown>
+    const title = titleOf(page)
+    const detail = rowDetail(page)
+    if (!title && !detail) return []
+    return [`${title || 'Untitled'}${detail ? ` — ${detail}` : ''}`]
+  } catch {
+    // A page we can read blocks for but not metadata is odd but survivable.
+    return []
+  }
 }
 
 /**
