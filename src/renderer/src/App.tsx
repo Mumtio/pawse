@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { ClientState, Intent, IntentResult } from '@shared/types'
 import { usePawse } from './lib/usePawse'
 import { Glyph } from './components/Glyph'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { PixelSprite } from './cat/PixelSprite'
 import { MOOD_SPRITES } from './cat/sprites'
 import { Today, type Prefill } from './screens/Today'
@@ -61,6 +62,8 @@ export function App(): React.JSX.Element {
     <div className="app">
       <Sidebar state={state} route={route} onNavigate={setRoute} onSend={send} />
       <main className="content">
+        {/* Keyed on the route so navigating away and back retries a crash. */}
+        <ErrorBoundary resetKey={route}>
         <div className="content-inner">
           {route === 'today' && (
             <Today
@@ -90,6 +93,7 @@ export function App(): React.JSX.Element {
           {route === 'insights' && <Insights state={state} send={send} />}
           {route === 'settings' && <SettingsScreen state={state} send={send} />}
         </div>
+        </ErrorBoundary>
       </main>
     </div>
   )

@@ -1,4 +1,11 @@
-import type { InventoryItem, PersistedState, Reminder, Settings } from './types'
+import type {
+  InventoryItem,
+  LlmSettings,
+  NotionSettings,
+  PersistedState,
+  Reminder,
+  Settings
+} from './types'
 import { MAX_PIPS } from './types'
 
 export const STATE_VERSION = 1
@@ -92,6 +99,24 @@ export const defaultSettings: Settings = {
   notion: { token: '' },
   trackingPaused: false,
   bridgeToken: ''
+}
+
+/**
+ * Read a settings sub-object that may not exist yet.
+ *
+ * The store back-fills these on load, so main always has them — but the
+ * renderer can legitimately be a version ahead during development, when
+ * electron-vite hot-reloads the window while the main process keeps running
+ * older code. A renderer that dereferences a missing sub-object throws and
+ * takes the whole screen down, which turns a harmless version skew into what
+ * looks like a broken page.
+ */
+export function notionSettingsOf(settings: Partial<Settings> | undefined): NotionSettings {
+  return { ...defaultSettings.notion, ...settings?.notion }
+}
+
+export function llmSettingsOf(settings: Partial<Settings> | undefined): LlmSettings {
+  return { ...defaultSettings.llm, ...settings?.llm }
 }
 
 /**

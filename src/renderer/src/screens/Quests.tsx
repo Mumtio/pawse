@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ClientState, NotionPage, Quest } from '@shared/types'
+import { notionSettingsOf } from '@shared/defaults'
 import type { Route, Send } from '../App'
 import type { Prefill } from './Today'
 import { shortDate } from './Today'
@@ -253,7 +254,7 @@ function NotionPicker({
   const [pages, setPages] = useState<NotionPage[] | null>(null)
   const [error, setError] = useState('')
   const busy = state.runtime.notionBusy || state.runtime.llmBusy
-  const hasToken = state.settings.notion.token.trim().length > 0
+  const hasToken = notionSettingsOf(state.settings).token.trim().length > 0
 
   const search = async (): Promise<void> => {
     setError('')

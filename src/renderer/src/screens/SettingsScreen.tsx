@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import type { ClientState, LlmProvider } from '@shared/types'
-import { describeNudgeInterval, normaliseSite } from '@shared/defaults'
+import {
+  describeNudgeInterval,
+  llmSettingsOf,
+  normaliseSite,
+  notionSettingsOf
+} from '@shared/defaults'
 import type { Send } from '../App'
 
 type Tab = 'general' | 'cat' | 'focus' | 'connections' | 'privacy' | 'about'
@@ -342,7 +347,7 @@ function NotionPanel({
   send: Send
   set: (p: Partial<ClientState['settings']>) => void
 }): React.JSX.Element {
-  const notion = state.settings.notion
+  const notion = notionSettingsOf(state.settings)
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null)
   const [testing, setTesting] = useState(false)
 
@@ -554,7 +559,7 @@ function Connections({
   send: Send
   set: (p: Partial<ClientState['settings']>) => void
 }): React.JSX.Element {
-  const llm = state.settings.llm
+  const llm = llmSettingsOf(state.settings)
   const provider = PROVIDERS.find((p) => p.id === llm.provider) ?? PROVIDERS[0]
   void send
 
