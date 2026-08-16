@@ -325,7 +325,14 @@ function NotionPicker({
               <button
                 className="btn btn-sm btn-primary"
                 disabled={busy}
-                onClick={() => void send({ type: 'notion:import', pageId: page.id, theme })}
+                onClick={() =>
+                  void send({
+                    type: 'notion:import',
+                    pageId: page.id,
+                    object: page.object,
+                    theme
+                  })
+                }
               >
                 {busy ? '…' : 'Use this'}
               </button>

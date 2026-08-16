@@ -203,7 +203,7 @@ async function handleIntent(
         s.runtime.llmNotice = undefined
       })
       try {
-        const text = await fetchPageText(state.settings.notion, intent.pageId)
+        const text = await fetchPageText(state.settings.notion, intent.pageId, intent.object)
         const { quest, notice } = await generateQuest(
           text,
           intent.theme,

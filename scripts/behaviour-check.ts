@@ -21,6 +21,7 @@ import { deriveMood, tickPet } from '../src/main/pet'
 import { tickNudges } from '../src/main/nudges'
 import { computeInsights, recordSiteTime } from '../src/main/insights'
 import { autoPauseReason } from '../src/main/focus'
+import { localQuest } from '../src/main/llm'
 
 let failures = 0
 
@@ -340,6 +341,59 @@ check('no session, nothing to pause', autoPauseReason(state(), Date.now(), true)
 const cameBack = distractedFor(5)
 cameBack.runtime.distractedSince = undefined
 check('coming back restarts the clock', autoPauseReason(cameBack, Date.now(), false), null)
+
+// -- splitting imported pages ----------------------------------------------
+//
+// A real Notion import produced chapters literally titled "# Study Plan": the
+// reader's own markdown markers reached the task text, and a hub page whose
+// top level is all headings had nothing else to offer. Both are pinned here.
+
+const hubPage = [
+  '# Study Plan',
+  '## Study Plan Calendar',
+  '- Read chapter 4 of the textbook — Due: 2026-09-01 · Status: Not started',
+  '- Draft the essay introduction — Due: 2026-09-03',
+  '- Revise lecture notes for the midterm',
+  '## Exam Schedule',
+  '- Sit the practice paper under timed conditions'
+].join('\n')
+
+const split = localQuest(hubPage, 'fantasy kingdom', 'notion')
+const tasks = split.chapters.map((c) => c.realTask)
+
+check('no markdown survives into a task', tasks.some((t) => t.startsWith('#')), false)
+check('the quest title is not a hash', split.title.startsWith('#'), false)
+check('headings are not mistaken for work', tasks.includes('Study Plan Calendar'), false)
+check('the actual rows become chapters', tasks[0].startsWith('Read chapter 4'), true)
+check('it is labelled as coming from notion', split.source, 'notion')
+console.log(`      first chapter: "${split.chapters[0].title}" → "${tasks[0]}"`)
+
+// Unticked boxes are the clearest statement of outstanding work there is.
+const withTodos = [
+  '# Week 3',
+  'Some preamble that is not a task at all.',
+  '- [ ] Finish the problem set',
+  '- [x] Email the tutor',
+  '- [ ] Re-read the seminar paper'
+].join('\n')
+const todoQuest = localQuest(withTodos, 'fantasy kingdom', 'notion')
+const todoTasks = todoQuest.chapters.map((c) => c.realTask)
+// Only the two unticked boxes: work already done is not outstanding work, and
+// two of those still beat six sentences chopped out of the surrounding prose.
+check('only unticked boxes become chapters', todoTasks.length, 2)
+check('the finished one is left out', todoTasks.some((t) => t.includes('Email the tutor')), false)
+check('checkbox syntax is stripped too', todoTasks.some((t) => t.includes('[')), false)
+check('the preamble is not a chapter', todoTasks.some((t) => t.startsWith('Some preamble')), false)
+
+// A page with nothing but headings still has to produce something usable.
+const headingsOnly = ['# Title', '## Section One', '## Section Two'].join('\n')
+const fallback = localQuest(headingsOnly, 'fantasy kingdom', 'notion')
+check('a headings-only page still yields chapters', fallback.chapters.length > 0, true)
+check(
+  'and they are still clean',
+  fallback.chapters.every((c) => !c.realTask.startsWith('#')),
+  true
+)
 
 // -- how often the cat speaks ----------------------------------------------
 

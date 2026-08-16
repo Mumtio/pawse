@@ -303,19 +303,49 @@ const ACTION_WORDS =
  * text — same contract as the model path.
  */
 export function localQuest(text: string, theme: string, source: QuestSource = 'paste'): Quest {
-  const lines = text
-    .split(/\r?\n/)
-    .map((l) => l.replace(/^[\s>*\-•]+/, '').replace(/^\d+[.)]\s*/, '').trim())
+  const raw = text.split(/\r?\n/)
+
+  /**
+   * Headings describe a document; they are not the work in it. Importing a
+   * page whose top level is all headings once produced chapters literally
+   * called "# Study Plan", so they are excluded as candidates — while still
+   * being stripped rather than dropped, in case they are all there is.
+   */
+  const isHeading = (line: string): boolean => /^\s*#{1,6}\s/.test(line)
+
+  const lines = raw.map(stripMarkers).filter((l) => l.length > 3)
+  const bodyLines = raw
+    .filter((l) => !isHeading(l))
+    .map(stripMarkers)
     .filter((l) => l.length > 3)
 
-  let candidates = lines.filter((l) => ACTION_WORDS.test(l) || (l.length < 120 && /[a-z]/i.test(l)))
+  /**
+   * An unticked checkbox is the clearest statement of outstanding work anyone
+   * writes down, so when a page has them they beat every other heuristic.
+   */
+  const todos = raw
+    .filter((l) => /^\s*[-*•]?\s*\[ \]/.test(l))
+    .map(stripMarkers)
+    .filter((l) => l.length > 3)
+
+  const pool = bodyLines.length >= 3 ? bodyLines : lines
+  let candidates = pool.filter(
+    (l) => ACTION_WORDS.test(l) || (l.length < 120 && /[a-z]/i.test(l))
+  )
 
   if (candidates.length < 3) {
     candidates = text
       .split(/(?<=[.!?])\s+/)
-      .map((s) => s.trim())
+      .map(stripMarkers)
       .filter((s) => s.length > 12)
   }
+
+  /**
+   * Checked last so the "not enough candidates" fallback can never discard it.
+   * Two outstanding boxes are a better answer than six sentences chopped out
+   * of prose, even though two is below the threshold everything else uses.
+   */
+  if (todos.length > 0) candidates = todos
 
   const picked = candidates.slice(0, 6)
   if (picked.length === 0) picked.push(text.slice(0, 120))
@@ -330,6 +360,22 @@ export function localQuest(text: string, theme: string, source: QuestSource = 'p
   const quest = makeQuest(titleCase(firstLine(text)) || 'A new quest', firstLine(text), chapters, source, theme)
   quest.dueAt = findDueDate(text)
   return quest
+}
+
+/**
+ * Strip the markdown the Notion reader emits so it never reaches a chapter.
+ *
+ * The reader adds `#`, `-` and `[ ]` markers deliberately: they carry meaning
+ * the splitter uses. They just must not survive into the task text a person
+ * reads back, which is how a chapter ended up titled "# Study Plan".
+ */
+function stripMarkers(line: string): string {
+  return line
+    .replace(/^[\s>*\-•]+/, '')
+    .replace(/^#{1,6}\s*/, '')
+    .replace(/^\d+[.)]\s*/, '')
+    .replace(/^\[[ xX]\]\s*/, '')
+    .trim()
 }
 
 function nounPhrase(task: string): string {
@@ -350,8 +396,13 @@ function titleCase(value: string): string {
     .join(' ')
 }
 
+/** The first line with something in it, markers stripped — quests are titled from this. */
 function firstLine(text: string): string {
-  return text.split(/\r?\n/).find((l) => l.trim().length > 0)?.trim().slice(0, 90) ?? ''
+  for (const line of text.split(/\r?\n/)) {
+    const cleaned = stripMarkers(line)
+    if (cleaned.length > 0) return cleaned.slice(0, 90)
+  }
+  return ''
 }
 
 function estimateMinutes(task: string): number {

@@ -161,13 +161,24 @@ function plain(rich: RichText[] | undefined): string {
  * checkbox state — because the quest splitter reads lines and a wall of
  * undifferentiated prose splits badly. Everything else is dropped.
  */
-export async function fetchPageText(notion: NotionSettings, pageId: string): Promise<string> {
+export async function fetchPageText(
+  notion: NotionSettings,
+  pageId: string,
+  /** Databases hold their content as rows, which are not blocks. */
+  object: 'page' | 'database' = 'page'
+): Promise<string> {
   const budget = { blocks: MAX_BLOCKS }
-  const lines = await readChildren(notion.token, pageId, 0, budget)
+  const lines =
+    object === 'database'
+      ? await readDatabaseRows(notion.token, pageId, budget)
+      : await readChildren(notion.token, pageId, 0, budget)
+
   const text = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
 
   if (!text) {
-    throw new Error('That page has no text in it — is the content on a sub-page?')
+    throw new Error(
+      'That page came back empty. If its content lives on sub-pages, share those with your integration too.'
+    )
   }
   return text.slice(0, MAX_TEXT_CHARS)
 }
@@ -200,6 +211,16 @@ async function readChildren(
       const line = lineFor(block)
       if (line) out.push('  '.repeat(depth) + line)
 
+      /**
+       * An inline database is where a study plan actually keeps its work — the
+       * page around it is usually just a heading. Its rows are not blocks, so
+       * walking children finds nothing and the import comes back empty-handed.
+       */
+      if (block.type === 'child_database') {
+        out.push(...(await readDatabaseRows(token, block.id, budget)))
+        continue
+      }
+
       // Toggles and list items routinely hold the actual detail as children.
       if (block.has_children) {
         out.push(...(await readChildren(token, block.id, depth + 1, budget)))
@@ -212,8 +233,112 @@ async function readChildren(
   return out
 }
 
+/**
+ * A database's rows, one line each.
+ *
+ * Rows are pages, so the row's own title is the task and its properties are
+ * the detail worth keeping — a due date and a status change what the work is,
+ * where a "Created by" column does not. Properties are appended to the same
+ * line so the splitter still sees one task per line.
+ */
+async function readDatabaseRows(
+  token: string,
+  databaseId: string,
+  budget: { blocks: number }
+): Promise<string[]> {
+  if (budget.blocks <= 0) return []
+
+  const out: string[] = []
+  let cursor: string | undefined
+
+  do {
+    const json = (await callNotion(token, `/databases/${databaseId}/query`, {
+      method: 'POST',
+      body: JSON.stringify({ page_size: 100, start_cursor: cursor })
+    })) as {
+      results?: Array<Record<string, unknown>>
+      next_cursor?: string | null
+      has_more?: boolean
+    }
+
+    for (const row of json.results ?? []) {
+      if (budget.blocks <= 0) break
+      budget.blocks -= 1
+
+      const title = titleOf(row) || 'Untitled'
+      const detail = rowDetail(row)
+      out.push(`- ${title}${detail ? ` — ${detail}` : ''}`)
+    }
+
+    cursor = json.has_more ? (json.next_cursor ?? undefined) : undefined
+  } while (cursor && budget.blocks > 0)
+
+  return out
+}
+
+/** The properties on a row that actually change what the work is. */
+function rowDetail(row: Record<string, unknown>): string {
+  const props = row.properties as Record<string, Record<string, unknown>> | undefined
+  if (!props) return ''
+
+  const parts: string[] = []
+  for (const [name, prop] of Object.entries(props)) {
+    const value = propertyValue(prop)
+    // The title is already the task, so repeating it here is noise.
+    if (!value || prop?.type === 'title') continue
+    parts.push(`${name}: ${value}`)
+    if (parts.length >= 4) break
+  }
+  return parts.join(' · ')
+}
+
+function propertyValue(prop: Record<string, unknown> | undefined): string {
+  if (!prop) return ''
+  switch (prop.type) {
+    case 'rich_text':
+      return plain(prop.rich_text as RichText[])
+    case 'date': {
+      const date = prop.date as { start?: string; end?: string } | null
+      if (!date?.start) return ''
+      return date.end ? `${date.start} → ${date.end}` : date.start
+    }
+    case 'select':
+      return ((prop.select as { name?: string } | null)?.name) ?? ''
+    case 'status':
+      return ((prop.status as { name?: string } | null)?.name) ?? ''
+    case 'multi_select':
+      return ((prop.multi_select as Array<{ name?: string }>) ?? [])
+        .map((s) => s.name)
+        .filter(Boolean)
+        .join(', ')
+    case 'checkbox':
+      return prop.checkbox ? 'done' : 'not done'
+    case 'number':
+      return prop.number === null || prop.number === undefined ? '' : String(prop.number)
+    case 'url':
+      return typeof prop.url === 'string' ? prop.url : ''
+    // People, files, relations and rollups are metadata about the row rather
+    // than a description of the work, and they crowd out what matters.
+    default:
+      return ''
+  }
+}
+
 function lineFor(block: Block): string {
-  const body = block[block.type] as { rich_text?: RichText[]; checked?: boolean } | undefined
+  const body = block[block.type] as
+    | { rich_text?: RichText[]; checked?: boolean; title?: string }
+    | undefined
+
+  /**
+   * Sub-pages and inline databases carry a bare `title` string instead of rich
+   * text. Falling through to rich_text leaves them empty, which is how a hub
+   * page — one that is nothing but links to the real work — imports as though
+   * it were blank.
+   */
+  if (block.type === 'child_page' || block.type === 'child_database') {
+    return body?.title ? `\n## ${body.title}` : ''
+  }
+
   const text = plain(body?.rich_text)
   if (!text) return ''
 

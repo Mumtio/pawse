@@ -446,7 +446,7 @@ export type Intent =
   | { type: 'quest:generate'; text: string; theme: string }
   | { type: 'notion:test' }
   | { type: 'notion:search'; query: string }
-  | { type: 'notion:import'; pageId: string; theme: string }
+  | { type: 'notion:import'; pageId: string; object: 'page' | 'database'; theme: string }
   | { type: 'quest:acceptDraft' }
   | { type: 'quest:discardDraft' }
   | { type: 'quest:toggleChapter'; questId: string; chapterId: string }
