@@ -278,6 +278,11 @@ async function handleIntent(
         pushLog(s, { at: Date.now(), type: 'returned_from_distraction' })
         s.bubbles = s.bubbles.filter((b) => b.kind !== 'doomscroll')
         clearNudges(s)
+        // Take them at their word straight away: calm the cat and restart the
+        // clock now rather than making them wait for the next extension poll
+        // to prove it. If they haven't actually left, the next report says so
+        // within seconds and the escalation simply starts again.
+        s.runtime.distractedSince = undefined
       })
       return
 

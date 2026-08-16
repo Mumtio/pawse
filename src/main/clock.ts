@@ -2,6 +2,7 @@ import { powerMonitor } from 'electron'
 import { getState, publish } from './appState'
 import { advanceMoodQueue, deriveMood, tickPet } from './pet'
 import {
+  autoPauseReason,
   isOpenEnded,
   pauseSession,
   phaseElapsedMs,
@@ -33,6 +34,8 @@ let timer: NodeJS.Timeout | null = null
 let lastTick = Date.now()
 /** True while the session is paused because the user stepped away. */
 let pausedByIdle = false
+/** True while the session is paused because the cat got angry about a feed. */
+let pausedByAnger = false
 
 export function startClock(): void {
   if (timer) return
@@ -67,18 +70,24 @@ function tick(): void {
   tickPet(state, now, isIdle, isDistracted)
 
   if (state.session) {
-    // Stepping away pauses the session rather than burning it. Coming back
-    // resumes automatically — no interruption is counted against you for it.
-    if (isIdle && !state.session.paused) {
+    // Both automatic pauses resume by themselves the moment their condition
+    // clears, and neither counts an interruption — the clock stopping is the
+    // whole consequence. A pause the person started by hand is left alone.
+    const reason = autoPauseReason(state, now, isIdle)
+
+    if (reason && !state.session.paused) {
       pauseSession(state, now, false)
-      pausedByIdle = true
-    } else if (!isIdle && pausedByIdle && state.session.paused) {
+      pausedByIdle = reason === 'away'
+      pausedByAnger = reason === 'feed'
+    } else if (!reason && (pausedByIdle || pausedByAnger) && state.session.paused) {
       resumeSession(state, now)
       pausedByIdle = false
+      pausedByAnger = false
     }
     tickSession(state, now, delta, isIdle)
   } else {
     pausedByIdle = false
+    pausedByAnger = false
   }
 
   const phaseBefore = state.session?.phase

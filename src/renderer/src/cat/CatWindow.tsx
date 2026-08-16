@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { Bubble } from '@shared/types'
+import type { Bubble, ClientState } from '@shared/types'
 import { MAX_PIPS } from '@shared/types'
 import { PixelSprite } from './PixelSprite'
 import { usePawse, formatClock } from '../lib/usePawse'
@@ -145,9 +145,14 @@ export function CatWindow(): React.JSX.Element | null {
         title={`${pet.name} — drag to move, click to pet, double-click to open Pawse`}
       >
         {showHud && (
-          <div className="cat-hud">
+          /*
+            A stopped clock with no explanation reads as a bug, so the HUD says
+            which of the two automatic pauses is in effect. "paused" alone would
+            leave someone hunting for a button they never pressed.
+          */
+          <div className="cat-hud" data-paused={session?.paused || undefined}>
             <span className="cat-hud-time">{formatClock(runtime.phaseRemainingSec)}</span>
-            <span className="cat-hud-phase">{session?.phase === 'break' ? 'break' : 'focus'}</span>
+            <span className="cat-hud-phase">{hudLabel(state)}</span>
           </div>
         )}
 
@@ -165,6 +170,22 @@ export function CatWindow(): React.JSX.Element | null {
       </div>
     </div>
   )
+}
+
+/**
+ * What the HUD says under the clock.
+ *
+ * The two automatic pauses name themselves, because the person did not press
+ * anything and needs to know what stopped it and therefore what restarts it.
+ */
+function hudLabel(state: ClientState): string {
+  const session = state.session
+  if (!session) return 'focus'
+  if (session.paused) {
+    if (state.pet.mood === 'angry') return 'paused — the feed'
+    return 'paused — away'
+  }
+  return session.phase === 'break' ? 'break' : 'focus'
 }
 
 function SpeechBubble({

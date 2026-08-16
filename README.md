@@ -23,7 +23,9 @@ Everything works offline and stays on your computer.
 - **A cat that can lose its temper** — stay on a blocked feed mid-session and it goes unimpressed;
   ignore that for another few minutes and it turns properly angry, with its own furious sprite and
   its own set of raised-voice lines. It's the one place the cat shouts, it's still angry at the
-  tab rather than at you, and "five more minutes" is honoured even mid-shout.
+  tab rather than at you, and "five more minutes" is honoured even mid-shout. **Once it's angry the
+  timer stops**, the same way stepping away stops it — a clock that keeps counting focused minutes
+  while you scroll is lying about how the session went. It restarts the moment you're back.
 - **Reminders as speech bubbles** — water, stretch, eye rest, stand up, wind-down, medication.
   Non-urgent ones wait for a gap in your work and arrive together instead of interrupting one at
   a time.

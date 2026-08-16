@@ -42,6 +42,11 @@
   font-size: var(--t-md);
 }
 
+/* A paused clock is dimmed so a glance tells you it isn't counting. */
+.cat-hud[data-paused] .cat-hud-time {
+  opacity: 0.55;
+}
+
 .cat-hud-phase {
   font-size: var(--t-xs);
   color: var(--on-cream-dim);

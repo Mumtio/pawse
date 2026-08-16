@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import type { AppState, FocusMode, FocusSession, RewardGrant, SessionSummary } from '@shared/types'
-import { grantRewards, rollFood, setTransientMood } from './pet'
+import { grantRewards, isProperlyAngry, rollFood, setTransientMood } from './pet'
 import { pushLog } from './log'
 
 /**
@@ -70,6 +70,29 @@ export function phaseRemainingMs(session: FocusSession, now: number): number {
 /** A stopwatch session (0 minutes planned) counts up and never self-ends. */
 export function isOpenEnded(session: FocusSession): boolean {
   return session.phase === 'focus' && session.plannedMinutes <= 0
+}
+
+/** Why the clock is stopped for you right now, if it is. */
+export type AutoPauseReason = 'away' | 'feed' | null
+
+/**
+ * The two things that stop the clock on your behalf, in priority order.
+ *
+ * Neither is a punishment and neither counts an interruption. Stepping away
+ * pauses a session rather than burning it; being deep enough into a feed that
+ * the cat is properly cross does the same, because a timer that keeps counting
+ * focused minutes while you scroll is lying about how the session went, and
+ * the total it hands you at the end is worth nothing.
+ *
+ * Kept pure and separate from the clock so it can be tested without booting
+ * Electron — the whole point of this rule is what it does over time.
+ */
+export function autoPauseReason(state: AppState, now: number, isIdle: boolean): AutoPauseReason {
+  const s = state.session
+  if (!s || s.phase === 'done') return null
+  if (isIdle) return 'away'
+  if (isProperlyAngry(state, now)) return 'feed'
+  return null
 }
 
 export function pauseSession(state: AppState, now = Date.now(), countInterruption = true): void {

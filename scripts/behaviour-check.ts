@@ -20,6 +20,7 @@ import {
 import { deriveMood, tickPet } from '../src/main/pet'
 import { tickNudges } from '../src/main/nudges'
 import { computeInsights } from '../src/main/insights'
+import { autoPauseReason } from '../src/main/focus'
 
 let failures = 0
 
@@ -290,6 +291,26 @@ check(
   nightStrip.some((s) => s.state === 'focused'),
   true
 )
+
+// -- the clock stops when the cat is angry ---------------------------------
+//
+// A timer that keeps counting focused minutes while you scroll is lying about
+// how the session went, so anger stops it. The checks that matter are the ones
+// proving it does NOT stop for anything less.
+
+check('a quick look does not stop the clock', autoPauseReason(distractedFor(1), Date.now(), false), null)
+check('a long scroll stops the clock', autoPauseReason(distractedFor(5), Date.now(), false), 'feed')
+check('stepping away still stops it', autoPauseReason(withSession(state()), Date.now(), true), 'away')
+check('focused work never stops it', autoPauseReason(withSession(state()), Date.now(), false), null)
+// Being away is reported as away even mid-scroll: you are not at the machine,
+// which is the more accurate of the two and the one that reads without blame.
+check('away outranks the feed', autoPauseReason(distractedFor(5), Date.now(), true), 'away')
+check('no session, nothing to pause', autoPauseReason(state(), Date.now(), true), null)
+
+// Saying "back to work" has to restart the clock, not just quiet the cat.
+const cameBack = distractedFor(5)
+cameBack.runtime.distractedSince = undefined
+check('coming back restarts the clock', autoPauseReason(cameBack, Date.now(), false), null)
 
 // -- how often the cat speaks ----------------------------------------------
 
