@@ -201,6 +201,11 @@ export interface Reminder {
   urgent: boolean
   lastFiredAt?: number
   lastConfirmedAt?: number
+  /**
+   * When an interval reminder that has never fired started counting from.
+   * Set once, so the gap is measured against a fixed point.
+   */
+  baselineAt?: number
   /** Set by "later" — suppressed until this epoch ms. */
   snoozedUntil?: number
   /** Confirmations today, reset at local midnight. */
@@ -446,7 +451,19 @@ export type Intent =
   | { type: 'notion:test' }
   | { type: 'notion:search'; query: string }
   | { type: 'notion:import'; pageId: string; object: 'page' | 'database'; theme: string }
-  | { type: 'quest:acceptDraft' }
+  /**
+   * `edits` carries whatever the person changed on the approval screen.
+   * Omitted means "save it exactly as generated". Chapters not listed have
+   * been removed, which is how deletion is expressed.
+   */
+  | {
+      type: 'quest:acceptDraft'
+      edits?: {
+        title: string
+        subtitle: string
+        chapters: Array<Pick<Chapter, 'id' | 'title' | 'realTask' | 'estMinutes' | 'reward'>>
+      }
+    }
   | { type: 'quest:discardDraft' }
   | { type: 'quest:toggleChapter'; questId: string; chapterId: string }
   | { type: 'quest:archive'; questId: string }

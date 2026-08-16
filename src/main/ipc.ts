@@ -13,7 +13,7 @@ import {
   toggleChecklistItem
 } from './focus'
 import { clearNudges, confirmReminder, snoozeReminder } from './reminders'
-import { addQuest, makeQuest, toggleChapter, archiveQuest } from './quests'
+import { addQuest, applyDraftEdits, makeQuest, toggleChapter, archiveQuest } from './quests'
 import { playSound } from './sound'
 import { feed, rewardReturn, setTransientMood } from './pet'
 import { generateQuest } from './llm'
@@ -227,7 +227,10 @@ async function handleIntent(
     case 'quest:acceptDraft':
       mutate((s) => {
         if (!s.questDraft) return
-        addQuest(s, s.questDraft)
+        const quest = intent.edits ? applyDraftEdits(s.questDraft, intent.edits) : s.questDraft
+        // Every chapter removed means there is no quest left to save.
+        if (quest.chapters.length === 0) return
+        addQuest(s, quest)
         s.questDraft = null
         s.runtime.llmNotice = undefined
       })

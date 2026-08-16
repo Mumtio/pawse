@@ -4,7 +4,7 @@ import { computeInsights } from './insights'
 import { broadcast, getCatWindow, getMainWindow } from './windows'
 
 /**
- * Main owns the state. Renderers never mutate it â€” they send Intents, main
+ * Main owns the state. Renderers never mutate it — they send Intents, main
  * applies them, and the resulting state is broadcast to every open window.
  * One shape in, one shape out; no cross-window sync to get wrong.
  */

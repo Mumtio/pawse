@@ -357,6 +357,191 @@ function NotionPicker({
   )
 }
 
+interface ChapterEdit {
+  id: string
+  title: string
+  realTask: string
+  estMinutes: number
+  reward: string
+}
+
+/**
+ * The approval step, with everything on it editable.
+ *
+ * Approval that only offers "yes" or "throw it away" is a poor kind of
+ * approval: a generated chapter is usually nearly right, and having to discard
+ * the whole quest over one wrong estimate pushes people into accepting text
+ * they disagree with. Since the promise is that Pawse never rewrites your
+ * requirements, the last word has to be literally yours.
+ *
+ * Edits are local until Save. Nothing is written while someone is mid-thought.
+ */
+function DraftReview({
+  draft,
+  notice,
+  send,
+  onClose
+}: {
+  draft: Quest
+  notice?: string
+  send: Send
+  onClose: () => void
+}): React.JSX.Element {
+  const [title, setTitle] = useState(draft.title)
+  const [subtitle, setSubtitle] = useState(draft.subtitle)
+  const [chapters, setChapters] = useState<ChapterEdit[]>(
+    draft.chapters.map((c) => ({
+      id: c.id,
+      title: c.title,
+      realTask: c.realTask,
+      estMinutes: c.estMinutes,
+      reward: c.reward
+    }))
+  )
+
+  const patch = (id: string, p: Partial<ChapterEdit>): void =>
+    setChapters((cs) => cs.map((c) => (c.id === id ? { ...c, ...p } : c)))
+
+  const remove = (id: string): void => setChapters((cs) => cs.filter((c) => c.id !== id))
+
+  const move = (index: number, by: number): void =>
+    setChapters((cs) => {
+      const next = [...cs]
+      const target = index + by
+      if (target < 0 || target >= next.length) return cs
+      ;[next[index], next[target]] = [next[target], next[index]]
+      return next
+    })
+
+  return (
+    <>
+      <h2>Does this look right?</h2>
+      {notice && <p className="notice">{notice}</p>}
+      <p className="muted">
+        Change anything that's off — {draft.chapters.length === chapters.length ? '' : 'chapters you remove stay removed, and '}
+        nothing is saved until you say so.
+      </p>
+
+      <label className="stack">
+        <span className="label">quest name</span>
+        <input className="field" maxLength={80} value={title} onChange={(e) => setTitle(e.target.value)} />
+      </label>
+
+      <label className="stack">
+        <span className="label">subtitle</span>
+        <input
+          className="field"
+          maxLength={120}
+          value={subtitle}
+          onChange={(e) => setSubtitle(e.target.value)}
+        />
+      </label>
+
+      <section className="stack">
+        <p className="section-label">
+          {chapters.length} chapter{chapters.length === 1 ? '' : 's'}
+        </p>
+
+        {chapters.length === 0 && (
+          <p className="notice">
+            every chapter removed — put one back or discard the quest.
+          </p>
+        )}
+
+        {chapters.map((c, i) => (
+          <div className="chapter-edit" key={c.id}>
+            <div className="row">
+              <input
+                className="field"
+                style={{ flex: 1, minWidth: 0 }}
+                aria-label="chapter name"
+                maxLength={80}
+                value={c.title}
+                onChange={(e) => patch(c.id, { title: e.target.value })}
+              />
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => move(i, -1)}
+                disabled={i === 0}
+                aria-label="move up"
+                title="move up"
+              >
+                ↑
+              </button>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => move(i, 1)}
+                disabled={i === chapters.length - 1}
+                aria-label="move down"
+                title="move down"
+              >
+                ↓
+              </button>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => remove(c.id)}
+                aria-label={`remove ${c.title}`}
+                title="remove this chapter"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* The real work, in your words — this is the line that has to
+                stay true to the assignment, so it gets the most room. */}
+            <textarea
+              className="field"
+              rows={2}
+              aria-label="what the work actually is"
+              value={c.realTask}
+              onChange={(e) => patch(c.id, { realTask: e.target.value })}
+            />
+
+            <div className="row">
+              <input
+                className="field"
+                style={{ width: 72 }}
+                inputMode="numeric"
+                aria-label="estimated minutes"
+                value={c.estMinutes}
+                onChange={(e) =>
+                  patch(c.id, { estMinutes: Number(e.target.value.replace(/\D/g, '')) || 0 })
+                }
+              />
+              <span className="muted">min</span>
+              <input
+                className="field"
+                style={{ flex: 1, minWidth: 0 }}
+                aria-label="reward"
+                maxLength={40}
+                value={c.reward}
+                onChange={(e) => patch(c.id, { reward: e.target.value })}
+              />
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <div className="row">
+        <div className="spacer" />
+        <button className="btn btn-ghost" onClick={() => void send({ type: 'quest:discardDraft' })}>
+          Discard
+        </button>
+        <button
+          className="btn btn-primary"
+          disabled={chapters.length === 0}
+          onClick={() => {
+            void send({ type: 'quest:acceptDraft', edits: { title, subtitle, chapters } })
+            onClose()
+          }}
+        >
+          Save quest
+        </button>
+      </div>
+    </>
+  )
+}
+
 /**
  * Generated chapters are always shown for approval before anything is saved.
  * Pawse must never quietly rewrite someone's coursework requirements.
@@ -446,46 +631,14 @@ function ImportDialog({
             )}
           </>
         ) : (
-          <>
-            <h2>Does this look right?</h2>
-            {state.runtime.llmNotice && <p className="notice">{state.runtime.llmNotice}</p>}
-            <p className="muted">
-              {draft.title} — {draft.chapters.length} chapters
-            </p>
-
-            <section>
-              {draft.chapters.map((c) => (
-                <div className="chapter" key={c.id}>
-                  <div style={{ flex: 1 }}>
-                    <p className="chapter-title">{c.title}</p>
-                    <p className="chapter-real">{c.realTask}</p>
-                    <p className="chapter-meta">
-                      ~{c.estMinutes}m · reward: {c.reward}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </section>
-
-            <div className="row">
-              <div className="spacer" />
-              <button
-                className="btn btn-ghost"
-                onClick={() => void send({ type: 'quest:discardDraft' })}
-              >
-                Discard
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  void send({ type: 'quest:acceptDraft' })
-                  onClose()
-                }}
-              >
-                Save quest
-              </button>
-            </div>
-          </>
+          /* Keyed on the draft so a freshly generated one resets the editor. */
+          <DraftReview
+            key={draft.id}
+            draft={draft}
+            notice={state.runtime.llmNotice}
+            send={send}
+            onClose={onClose}
+          />
         )}
       </div>
     </div>

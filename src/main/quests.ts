@@ -34,6 +34,44 @@ export function addQuest(state: AppState, quest: Quest): void {
   state.quests.unshift(quest)
 }
 
+export interface DraftEdits {
+  title: string
+  subtitle: string
+  chapters: Array<Pick<Chapter, 'id' | 'title' | 'realTask' | 'estMinutes' | 'reward'>>
+}
+
+/**
+ * Fold the approval screen's edits into the generated draft.
+ *
+ * Only the fields a person can actually change are taken from the edit. Id,
+ * theme, source, createdAt and dueAt come from the draft — provenance is not
+ * the user's to retype, and a quest that came from Notion should still say so
+ * after its wording has been tidied up. Chapter order follows the edit, since
+ * reordering is one of the things being approved.
+ */
+export function applyDraftEdits(draft: Quest, edits: DraftEdits): Quest {
+  const byId = new Map(draft.chapters.map((c) => [c.id, c]))
+  return {
+    ...draft,
+    title: edits.title.trim() || draft.title,
+    subtitle: edits.subtitle.trim(),
+    chapters: edits.chapters
+      // An edit naming a chapter that isn't in the draft is not to be trusted.
+      .filter((c) => byId.has(c.id))
+      .map((c) => {
+        const original = byId.get(c.id)!
+        return {
+          ...original,
+          // Blanking a field means "leave it alone", never "save it empty".
+          title: c.title.trim() || original.title,
+          realTask: c.realTask.trim() || original.realTask,
+          estMinutes: Math.min(600, Math.max(5, Math.round(c.estMinutes) || original.estMinutes)),
+          reward: c.reward.trim() || original.reward
+        }
+      })
+  }
+}
+
 export function archiveQuest(state: AppState, questId: string): void {
   const q = state.quests.find((x) => x.id === questId)
   if (q) q.archivedAt = Date.now()

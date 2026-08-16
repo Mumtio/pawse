@@ -27,12 +27,21 @@ function parseHHMM(value?: string): number | null {
   return h * 60 + m
 }
 
+/**
+ * Is `now` inside the reminder's active window?
+ *
+ * Windows are allowed to wrap past midnight, and they must be: "09:00 to
+ * 08:00" is how you say "all day except the small hours", and a plain
+ * start<=mins<=end test makes that window match nothing at all — the reminder
+ * goes permanently silent with no indication why.
+ */
 function withinWindow(r: Reminder, now: number): boolean {
   const start = parseHHMM(r.windowStart)
   const end = parseHHMM(r.windowEnd)
   if (start === null || end === null) return true
   const mins = minutesOfDay(now)
-  return mins >= start && mins <= end
+  if (start === end) return true
+  return start < end ? mins >= start && mins <= end : mins >= start || mins <= end
 }
 
 function isDue(r: Reminder, state: AppState, now: number): boolean {
@@ -52,7 +61,15 @@ function isDue(r: Reminder, state: AppState, now: number): boolean {
   }
 
   if (r.everyMinutes) {
-    const since = r.lastFiredAt ?? r.lastConfirmedAt ?? state.pet.lastDecayAt
+    /**
+     * The baseline for a reminder that has never fired used to be
+     * `pet.lastDecayAt` — which the pet tick rewrites to `now` every second.
+     * The elapsed time was therefore always about zero, and no interval
+     * reminder could ever come due on a fresh install. `baselineAt` is set
+     * once, by tickReminders, and then stays put.
+     */
+    const since = r.lastFiredAt ?? r.lastConfirmedAt ?? r.baselineAt
+    if (since === undefined) return false
     return now - since >= r.everyMinutes * 60_000
   }
 
@@ -117,6 +134,21 @@ function combinedBubble(reminders: Reminder[]): Bubble {
 
 export function tickReminders(state: AppState, now: number): void {
   if (state.settings.trackingPaused) return
+
+  // Anchor any interval reminder that has never fired, so "every 45 minutes"
+  // is measured from a fixed point rather than from a moving one. First run
+  // after setup therefore arrives one full interval later, which is what
+  // someone setting a 45-minute reminder expects.
+  for (const r of state.reminders) {
+    if (
+      r.everyMinutes &&
+      r.lastFiredAt === undefined &&
+      r.lastConfirmedAt === undefined &&
+      r.baselineAt === undefined
+    ) {
+      r.baselineAt = now
+    }
+  }
 
   const alreadyShowing = new Set(
     state.bubbles.filter((b) => b.reminderId).map((b) => b.reminderId as string)

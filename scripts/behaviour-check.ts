@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Behaviour checks for the parts that decide what the cat does.
  *
  * These are pure functions over AppState, so they can be exercised without
@@ -22,6 +22,8 @@ import { tickNudges } from '../src/main/nudges'
 import { computeInsights, recordSiteTime } from '../src/main/insights'
 import { autoPauseReason } from '../src/main/focus'
 import { localQuest } from '../src/main/llm'
+import { tickReminders } from '../src/main/reminders'
+import { applyDraftEdits } from '../src/main/quests'
 
 let failures = 0
 
@@ -405,6 +407,92 @@ check('the row keeps its detail', rowQuest.chapters[0].realTask.includes('2026-0
 // Notion titles routinely start with an emoji icon, which reads as a glitch.
 const emojiTitled = ['# 📶 Study Plan', '- Read chapter 4', '- Draft the essay'].join('\n')
 check('a leading emoji is not part of the title', localQuest(emojiTitled, 'x', 'notion').title, 'Study Plan')
+
+// -- reminders actually firing ---------------------------------------------
+//
+// Every interval reminder on a real install had never fired once. Two causes,
+// both permanent and both silent, so both are pinned here.
+
+/** A state with one interval reminder, and the pet tick having just run. */
+function withReminder(over: Partial<AppState['reminders'][number]> = {}): AppState {
+  const s = state()
+  s.reminders = [
+    {
+      id: 'water',
+      kind: 'water',
+      label: 'Water',
+      everyMinutes: 45,
+      enabled: true,
+      urgent: false,
+      todayCount: 0,
+      ...over
+    }
+  ]
+  return s
+}
+
+// The baseline used to be pet.lastDecayAt, which the pet tick rewrites to now
+// every second — so the gap was always ~0 and nothing ever came due.
+const fresh = withReminder()
+const t0 = Date.now()
+fresh.pet.lastDecayAt = t0
+tickReminders(fresh, t0)
+check('a brand new reminder does not fire instantly', fresh.bubbles.length, 0)
+check('but it is anchored so it can', typeof fresh.reminders[0].baselineAt, 'number')
+
+// An hour later it is overdue, even though lastDecayAt has kept moving.
+const later = t0 + 60 * 60_000
+fresh.pet.lastDecayAt = later
+tickReminders(fresh, later)
+check('and it fires once the interval has passed', fresh.bubbles.length, 1)
+
+// A window that wraps past midnight is how you say "all day but the small
+// hours". Tested against the exact windows that were silently dead.
+const noon = new Date().setHours(12, 0, 0, 0)
+const smallHours = new Date().setHours(3, 0, 0, 0)
+const wrapping = withReminder({ windowStart: '09:00', windowEnd: '08:00', baselineAt: 1 })
+tickReminders(wrapping, noon)
+check('a wrapping window is open at midday', wrapping.bubbles.length, 1)
+
+const wrapping2 = withReminder({ windowStart: '09:00', windowEnd: '06:00', baselineAt: 1 })
+tickReminders(wrapping2, smallHours)
+check('and still open at 3am', wrapping2.bubbles.length, 1)
+
+// An ordinary window must still shut when it should.
+const daytime = withReminder({ windowStart: '09:00', windowEnd: '17:00', baselineAt: 1 })
+tickReminders(daytime, smallHours)
+check('a normal window is shut overnight', daytime.bubbles.length, 0)
+
+const daytimeOpen = withReminder({ windowStart: '09:00', windowEnd: '17:00', baselineAt: 1 })
+tickReminders(daytimeOpen, noon)
+check('and open during the day', daytimeOpen.bubbles.length, 1)
+
+// -- editing a generated quest ---------------------------------------------
+
+const generated = localQuest('- Read chapter 4\n- Draft the essay\n- Revise notes', 'x', 'notion')
+const edited = applyDraftEdits(generated, {
+  title: 'My Own Title',
+  subtitle: 'week 3',
+  chapters: [
+    { ...generated.chapters[1], title: 'Renamed', realTask: 'Actually write it', estMinutes: 75, reward: 'Tea' }
+  ]
+})
+check('an edited title is kept', edited.title, 'My Own Title')
+check('removing chapters removes them', edited.chapters.length, 1)
+check('an edited task is kept', edited.chapters[0].realTask, 'Actually write it')
+check('an edited estimate is kept', edited.chapters[0].estMinutes, 75)
+check('provenance survives editing', edited.source, 'notion')
+check('the chapter keeps its id', edited.chapters[0].id, generated.chapters[1].id)
+
+// Blanking a field means "leave it", never "save it empty".
+const blanked = applyDraftEdits(generated, {
+  title: '   ',
+  subtitle: '',
+  chapters: [{ ...generated.chapters[0], title: '  ', realTask: '', estMinutes: 0, reward: '' }]
+})
+check('a blanked title falls back', blanked.title, generated.title)
+check('a blanked task falls back', blanked.chapters[0].realTask, generated.chapters[0].realTask)
+check('a zero estimate falls back', blanked.chapters[0].estMinutes, generated.chapters[0].estMinutes)
 
 // -- how often the cat speaks ----------------------------------------------
 
