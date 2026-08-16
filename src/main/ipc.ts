@@ -2,7 +2,7 @@ import { app, dialog, ipcMain, shell } from 'electron'
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Intent, IntentResult } from '@shared/types'
-import { createInitialState, makeBridgeToken } from '@shared/defaults'
+import { createInitialState, makeBridgeToken, normaliseSite } from '@shared/defaults'
 import { getState, mutate, publish, replaceState, toClientState } from './appState'
 import {
   finishSession,
@@ -291,6 +291,11 @@ async function handleIntent(
     case 'settings:patch':
       mutate((s) => {
         s.settings = { ...s.settings, ...intent.patch, llm: { ...s.settings.llm, ...intent.patch.llm } }
+        // Site lists arrive as whatever was typed into the box. Clean them here
+        // rather than at the input, so a list edited by any future caller
+        // still can't hold a URL, a duplicate, or an unbounded number of rows.
+        if (intent.patch.blockedSites) s.settings.blockedSites = cleanSiteList(intent.patch.blockedSites)
+        if (intent.patch.studySites) s.settings.studySites = cleanSiteList(intent.patch.studySites)
       })
       applyCatSettings(getState().settings)
       if (intent.patch.launchAtLogin !== undefined && app.isPackaged) {
@@ -360,6 +365,20 @@ async function handleIntent(
       throw new Error(`Unhandled intent: ${JSON.stringify(never)}`)
     }
   }
+}
+
+/** An upper bound that no real list reaches, so state can't grow without end. */
+const MAX_SITES = 200
+
+/** Normalise, drop anything that isn't a hostname, de-duplicate, and cap. */
+function cleanSiteList(sites: string[]): string[] {
+  const seen = new Set<string>()
+  for (const raw of sites) {
+    const site = normaliseSite(raw)
+    if (site) seen.add(site)
+    if (seen.size >= MAX_SITES) break
+  }
+  return [...seen]
 }
 
 async function confirmDestructive(message: string, detail: string): Promise<boolean> {

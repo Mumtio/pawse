@@ -1,10 +1,18 @@
 /**
- * Runs on the handful of sites whose feeds are the usual suspects.
+ * Runs on every site, acts on almost none of them.
  *
- * What it sends to Pawse: the domain, roughly how long you've been on it, and
- * a note when scrolling has been continuous for a while. Never the URL, never
- * the page content, never anything you type. Everything goes to 127.0.0.1 —
- * nothing leaves the machine.
+ * It has to load everywhere because the blocked list is yours to edit and a
+ * manifest can't be rewritten at runtime — but which sites it actually does
+ * anything on is decided by Pawse, from the lists in Settings, and re-read on
+ * every poll.
+ *
+ * What it sends to Pawse: for a site on one of your lists, the domain, roughly
+ * how long you've been on it, and a note when scrolling has been continuous
+ * for a while. For every other site — the overwhelming majority — it sends
+ * only the fact that you're on something unlisted, with no domain attached.
+ * That's enough for the cat to know you've left the feed and not one byte
+ * more. Never the URL, never the page content, never anything you type.
+ * Everything goes to 127.0.0.1 — nothing leaves the machine.
  *
  * Hiding is done two ways on purpose. Structural things (custom elements,
  * role="feed") are handled by CSS in hide.css. Anything identified by a label
@@ -21,7 +29,37 @@ const REAPPLY_MS = 1200
 
 const domain = location.hostname.replace(/^www\./, '')
 
-let focus = { focusActive: false, hideFeeds: false, scrollThresholdMs: 360000 }
+let focus = {
+  focusActive: false,
+  hideFeeds: false,
+  scrollThresholdMs: 360000,
+  blockedSites: [],
+  studySites: []
+}
+
+// ---------------------------------------------------------------------------
+// Which list this page is on
+// ---------------------------------------------------------------------------
+
+function matches(site) {
+  return domain === site || domain.endsWith(`.${site}`)
+}
+
+/** A study site is never touched and never reported as a distraction. */
+function isStudy() {
+  return (focus.studySites || []).some(matches)
+}
+
+/** Blocked, unless it's also been named as a study site — study wins. */
+function isBlocked() {
+  if (isStudy()) return false
+  return (focus.blockedSites || []).some(matches)
+}
+
+/** On one of the lists at all, and therefore a domain Pawse may be told about. */
+function isListed() {
+  return isBlocked() || isStudy()
+}
 let scrollingSince = 0
 let lastScrollAt = 0
 let reportedThisStreak = false
@@ -39,6 +77,9 @@ function isFeedRoute() {
   if (domain === 'x.com' || domain.endsWith('twitter.com')) return p === '/' || p === '/home'
   if (domain.endsWith('instagram.com')) return p === '/' || p.startsWith('/reels')
   if (domain.endsWith('facebook.com')) return p === '/' || p.startsWith('/reel') || p.startsWith('/watch')
+  // Anything you added yourself: treat the front page as the feed and leave
+  // deeper pages alone, so a site you blocked is still usable for the one
+  // thing you went there to look up.
   return p === '/' || p === '/foryou'
 }
 
@@ -89,7 +130,8 @@ function applyDynamicHiding(active) {
 
 function applyFocus() {
   const root = document.documentElement
-  const hiding = Boolean(focus.focusActive && focus.hideFeeds)
+  // Nothing is ever hidden on a site you haven't blocked, session or not.
+  const hiding = Boolean(focus.focusActive && focus.hideFeeds && isBlocked())
   const onFeed = isFeedRoute()
 
   root.classList.toggle('pawse-focus', hiding)
@@ -141,6 +183,8 @@ window.addEventListener(
 
     if (reportedThisStreak || !scrollingSince) return
     if (now - scrollingSince < focus.scrollThresholdMs) return
+    // Long reads on unblocked sites are not the problem this is looking for.
+    if (!isBlocked()) return
 
     reportedThisStreak = true
     send({ type: 'scroll', domain, scrollingMs: now - scrollingSince })
@@ -173,12 +217,22 @@ function poll() {
         applyFocus()
       } else if (res && res.error === 'offline') {
         // Pawse closed — put everything back exactly as we found it.
-        focus = { focusActive: false, hideFeeds: false, scrollThresholdMs: 360000 }
+        focus = {
+          focusActive: false,
+          hideFeeds: false,
+          scrollThresholdMs: 360000,
+          blockedSites: [],
+          studySites: []
+        }
         applyFocus()
       }
     })
-    // Reporting the domain is what lets the cat tell working from scrolling.
-    send({ type: 'activity', domain, seconds: POLL_MS / 1000 })
+    // Reporting the domain is what lets the cat tell working from scrolling —
+    // but only for sites you named. Everywhere else reports itself as
+    // "unlisted" and stays anonymous, which is all the cat needs to know you
+    // have left the feed.
+    if (isListed()) send({ type: 'activity', domain, seconds: POLL_MS / 1000 })
+    else send({ type: 'activity', unlisted: true, seconds: POLL_MS / 1000 })
   } catch {
     /* ignore */
   }

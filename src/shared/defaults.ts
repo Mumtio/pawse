@@ -3,6 +3,59 @@ import { MAX_PIPS } from './types'
 
 export const STATE_VERSION = 1
 
+/**
+ * The sites Pawse starts out treating as distracting.
+ *
+ * A starting point, not a verdict — the whole list is editable in Settings,
+ * because one person's time sink is another person's lecture hall.
+ */
+export const defaultBlockedSites: string[] = [
+  'youtube.com',
+  'reddit.com',
+  'x.com',
+  'twitter.com',
+  'instagram.com',
+  'tiktok.com',
+  'facebook.com'
+]
+
+/**
+ * Reduce whatever someone typed to a bare hostname.
+ *
+ * People paste URLs, type "www.", and add trailing slashes; all three should
+ * land on the same entry rather than quietly failing to match anything.
+ */
+export function normaliseSite(input: string): string {
+  let value = input.trim().toLowerCase()
+  if (!value) return ''
+  value = value.replace(/^[a-z][a-z0-9+.-]*:\/\//, '')
+  value = value.split('/')[0].split('?')[0].split('#')[0]
+  // Strip credentials and any port.
+  value = value.split('@').pop() ?? ''
+  value = value.split(':')[0]
+  value = value.replace(/^www\./, '')
+  // A bare word with no dot can't be a hostname, and matching one would be a
+  // trap: "study" would swallow every domain containing it.
+  if (!value.includes('.')) return ''
+  return value.slice(0, 120)
+}
+
+/** True when `domain` is the site itself or any subdomain of it. */
+export function siteMatches(domain: string, site: string): boolean {
+  return domain === site || domain.endsWith(`.${site}`)
+}
+
+/** Whether a domain counts as distracting, with study sites winning outright. */
+export function isBlockedDomain(
+  domain: string,
+  blockedSites: string[],
+  studySites: string[]
+): boolean {
+  if (!domain) return false
+  if (studySites.some((s) => siteMatches(domain, s))) return false
+  return blockedSites.some((s) => siteMatches(domain, s))
+}
+
 export const defaultSettings: Settings = {
   launchAtLogin: true,
   startMinimised: false,
@@ -19,6 +72,8 @@ export const defaultSettings: Settings = {
   idleThresholdMin: 3,
   showHud: true,
   doomscrollSensitivity: 'normal',
+  blockedSites: [...defaultBlockedSites],
+  studySites: [],
 
   reminderStyle: 'normal',
   holdNonUrgent: true,

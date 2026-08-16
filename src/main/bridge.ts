@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import { randomUUID } from 'node:crypto'
 import type { AppState } from '@shared/types'
+import { isBlockedDomain } from '@shared/defaults'
 import { getState, publish } from './appState'
 import { penaliseDoomscroll } from './pet'
 import { pushLog } from './log'
@@ -21,17 +22,6 @@ const PORT = 17342
 const HOST = '127.0.0.1'
 /** No contact for this long and we consider the extension gone. */
 const LIVENESS_MS = 20_000
-
-/** Sites whose feeds are the usual suspects; used only to label time. */
-const DISTRACTING = [
-  'youtube.com',
-  'reddit.com',
-  'x.com',
-  'twitter.com',
-  'instagram.com',
-  'tiktok.com',
-  'facebook.com'
-]
 
 const SCROLL_THRESHOLD_MS: Record<string, number> = {
   relaxed: 8 * 60_000,
@@ -120,7 +110,12 @@ function focusPayload(state: AppState): Record<string, unknown> {
     blockSites: active && session?.mode === 'strict',
     sensitivity: state.settings.doomscrollSensitivity,
     scrollThresholdMs: SCROLL_THRESHOLD_MS[state.settings.doomscrollSensitivity] ?? 360_000,
-    catName: state.pet.name
+    catName: state.pet.name,
+    // The extension runs on every page but acts on almost none of them; these
+    // are what tell it which. Sent every poll, so edits in Settings take
+    // effect on the next beat without reloading anything.
+    blockedSites: state.settings.blockedSites,
+    studySites: state.settings.studySites
   }
 }
 
@@ -129,17 +124,32 @@ interface BridgeEvent {
   domain?: string
   seconds?: number
   scrollingMs?: number
+  /** Set when the tab is on a site that's on neither list, in place of a domain. */
+  unlisted?: boolean
 }
 
 function applyEvent(state: AppState, body: BridgeEvent): void {
   if (state.settings.trackingPaused) return
+
+  /**
+   * A tab on a site you never listed. We're told that it happened but not what
+   * it was, which is exactly enough: it ends any distraction that was running
+   * and keeps the domain from going stale, without recording where you went.
+   */
+  if (body.unlisted) {
+    state.runtime.currentDomain = undefined
+    state.runtime.domainSeenAt = Date.now()
+    state.runtime.distractedSince = undefined
+    return
+  }
+
   const domain = normaliseDomain(body.domain ?? '')
   if (!domain) return
 
   if (body.type === 'activity') {
     const seconds = Math.min(Math.max(body.seconds ?? 0, 0), 120)
     const now = Date.now()
-    const distracting = isDistracting(domain)
+    const distracting = isDistracting(state, domain)
 
     // Remember where you are, so the rest of the app can react. Without this
     // the cat cheerfully encourages you while you scroll a feed, because it
@@ -159,6 +169,10 @@ function applyEvent(state: AppState, body: BridgeEvent): void {
   }
 
   if (body.type === 'scroll') {
+    // The content script now runs everywhere, so a long scroll through a wiki
+    // or a docs page reaches us too. Only the user's own blocked list earns a
+    // check-in; reading something for hours is not the problem being solved.
+    if (!isDistracting(state, domain)) return
     maybeAskAboutScrolling(state, domain)
   }
 }
@@ -200,8 +214,9 @@ function normaliseDomain(input: string): string {
   return input.replace(/^www\./, '').toLowerCase().slice(0, 120)
 }
 
-function isDistracting(domain: string): boolean {
-  return DISTRACTING.some((d) => domain === d || domain.endsWith(`.${d}`))
+function isDistracting(state: AppState, domain: string): boolean {
+  const { blockedSites, studySites } = state.settings
+  return isBlockedDomain(domain, blockedSites, studySites)
 }
 
 function sendJson(res: ServerResponse, payload: unknown): void {

@@ -20,6 +20,10 @@ Everything works offline and stays on your computer.
 - **The cat's state** — segmented health and food bars. Health drains slowly while you're at the
   machine skipping care, and any single care action puts back more than 45 minutes took away. It
   floors well above empty: the cat gets sleepy, never sick, never gone.
+- **A cat that can lose its temper** — stay on a blocked feed mid-session and it goes unimpressed;
+  ignore that for another few minutes and it turns properly angry, with its own furious sprite and
+  its own set of raised-voice lines. It's the one place the cat shouts, it's still angry at the
+  tab rather than at you, and "five more minutes" is honoured even mid-shout.
 - **Reminders as speech bubbles** — water, stretch, eye rest, stand up, wind-down, medication.
   Non-urgent ones wait for a gap in your work and arrive together instead of interrupting one at
   a time.
@@ -29,7 +33,8 @@ Everything works offline and stays on your computer.
   connect. Falls back to a local splitter with no key and no network.
 - **Gatekeeper extension** — hides YouTube's home feed, Shorts and watch sidebar, Reddit's front
   page, and X's timeline while a session runs. Notices long scroll stretches and has the cat ask
-  about it once.
+  about it once. The blocked list is yours to edit, and study sites can be marked as always-allowed
+  in Settings › Focus & Gatekeeper.
 - **Insights** — focus by hour, care streaks, and plain-language observations, computed locally.
 
 ## Not built yet
@@ -154,8 +159,10 @@ lost, and the app still opens. "Export everything" is a copy of this file.
 
 - Activity analysis happens locally. Nothing is sent anywhere except the model provider you
   explicitly connect.
-- The extension reports the **domain**, time on page, and long scroll stretches. Never URLs, never
-  page content, never anything typed.
+- The extension loads on every site, because the blocked list is editable at runtime and a manifest
+  isn't. It only ever reports a **domain** for sites on one of your two lists; everywhere else it
+  reports the single bit "unlisted" with no domain attached, which is all the cat needs to know you
+  have left the feed. Never URLs, never page content, never anything typed.
 - Tracking can be paused entirely, and history can be exported or deleted from Settings ›
   Privacy & data.
 - Pawse never diagnoses anything, never recommends medication or dosage, and **never marks a dose

@@ -9,7 +9,12 @@
  *   npm run check
  */
 import type { AppState } from '../src/shared/types'
-import { createInitialState } from '../src/shared/defaults'
+import {
+  createInitialState,
+  defaultBlockedSites,
+  isBlockedDomain,
+  normaliseSite
+} from '../src/shared/defaults'
 import { deriveMood, tickPet } from '../src/main/pet'
 import { tickNudges } from '../src/main/nudges'
 
@@ -127,6 +132,75 @@ snoozed.runtime.lastNudgeAt = 0
 snoozed.runtime.doomscrollSnoozeUntil = Date.now() + 5 * 60_000
 tickNudges(snoozed, Date.now(), false, true)
 check('a granted five minutes is respected', snoozed.bubbles.length, 0)
+
+// -- getting angry ---------------------------------------------------------
+//
+// The escalation only earns its keep if it stays off for a quick look and
+// arrives for a long one. Both directions are checked, because a cat that is
+// instantly furious is the same failure as one that never is.
+
+/** A session where the distraction started `minutes` ago. */
+function distractedFor(minutes: number): AppState {
+  const s = withSession(state())
+  s.settings.talkativeness = 1
+  s.runtime.lastNudgeAt = 0
+  s.runtime.distractedSince = Date.now() - minutes * 60_000
+  return s
+}
+
+check('a quick look is only unimpressed', deriveMood(distractedFor(1), false, true), 'distracted')
+check('a long scroll turns it angry', deriveMood(distractedFor(5), false, true), 'angry')
+check('angry needs a session', deriveMood(state(), false, true), 'idle')
+
+function textFor(minutes: number): string {
+  const s = distractedFor(minutes)
+  tickNudges(s, Date.now(), false, true)
+  return s.bubbles[0]?.text ?? '(silence)'
+}
+
+const mild = textFor(1)
+const furious = textFor(5)
+check('the angry lines are their own set', mild !== furious, true)
+console.log(`      after 1 min:  "${mild}"`)
+console.log(`      after 5 min:  "${furious}"`)
+
+// Shouting is still answerable, and still offers the way out.
+const angryBubble = distractedFor(5)
+tickNudges(angryBubble, Date.now(), false, true)
+const angryActions = (angryBubble.bubbles[0]?.actions ?? []).map((a) => a.label)
+check('even the angry bubble can be answered', angryActions.length, 2)
+console.log(`      buttons: ${angryActions.join(' / ')}`)
+
+// A granted five minutes outranks the anger, or the promise means nothing.
+const angrySnoozed = distractedFor(5)
+angrySnoozed.runtime.doomscrollSnoozeUntil = Date.now() + 5 * 60_000
+tickNudges(angrySnoozed, Date.now(), false, true)
+check('anger still honours a granted five minutes', angrySnoozed.bubbles.length, 0)
+
+// -- which sites count -----------------------------------------------------
+
+check('a default site is distracting', isBlockedDomain('youtube.com', defaultBlockedSites, []), true)
+check(
+  'subdomains count too',
+  isBlockedDomain('m.youtube.com', defaultBlockedSites, []),
+  true
+)
+check('an unlisted site is not', isBlockedDomain('wikipedia.org', defaultBlockedSites, []), false)
+check(
+  'a study site wins over a blocked one',
+  isBlockedDomain('youtube.com', defaultBlockedSites, ['youtube.com']),
+  false
+)
+check('a removed site stops counting', isBlockedDomain('youtube.com', [], []), false)
+check('a site you added counts', isBlockedDomain('news.ycombinator.com', ['ycombinator.com'], []), true)
+// A near-miss must not match: "notyoutube.com" ends with the same characters
+// but is a different site, which is exactly what the leading dot guards.
+check('a lookalike domain does not match', isBlockedDomain('notyoutube.com', ['youtube.com'], []), false)
+
+check('a pasted URL becomes a host', normaliseSite('https://www.Reddit.com/r/all?x=1'), 'reddit.com')
+check('a port is dropped', normaliseSite('localhost.dev:3000'), 'localhost.dev')
+check('a bare word is rejected', normaliseSite('study'), '')
+check('whitespace alone is rejected', normaliseSite('   '), '')
 
 // -- silence ---------------------------------------------------------------
 

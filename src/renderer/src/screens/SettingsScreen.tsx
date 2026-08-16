@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ClientState, LlmProvider } from '@shared/types'
+import { normaliseSite } from '@shared/defaults'
 import type { Send } from '../App'
 
 type Tab = 'general' | 'cat' | 'focus' | 'connections' | 'privacy' | 'about'
@@ -200,6 +201,32 @@ export function SettingsScreen({
                   ))}
                 </div>
               </Row>
+
+              <p className="section-label" style={{ marginTop: 'var(--s8)' }}>
+                Your sites
+              </p>
+              <p className="muted" style={{ margin: 'var(--s2) 0 var(--s4)', fontSize: 'var(--t-xs)' }}>
+                The Gatekeeper hides feeds on blocked sites during a session, and time there counts
+                as distracted. Study sites are always left alone. Needs the browser extension.
+              </p>
+
+              <SiteList
+                title="Blocked while focusing"
+                hint="Subdomains are included, so youtube.com covers m.youtube.com too."
+                placeholder="e.g. youtube.com"
+                sites={s.blockedSites}
+                onChange={(blockedSites) => set({ blockedSites })}
+                emptyNote="Nothing blocked. The Gatekeeper has nothing to hide."
+              />
+
+              <SiteList
+                title="Study sites"
+                hint="Always allowed, and never counted as a distraction — even if the same site is blocked above."
+                placeholder="e.g. notion.so"
+                sites={s.studySites}
+                onChange={(studySites) => set({ studySites })}
+                emptyNote="None yet. Add the places you actually work."
+              />
             </>
           )}
 
@@ -266,6 +293,116 @@ export function SettingsScreen({
         </div>
       </div>
     </>
+  )
+}
+
+// ---------------------------------------------------------------------------
+
+/**
+ * An editable list of domains.
+ *
+ * Entries are normalised on the way in, so pasting a whole URL works and lands
+ * on the same row as typing the bare host. Removal is a single click with no
+ * confirmation — the lists are cheap to rebuild, and a dialog for every removed
+ * row would be worse than the mistake it prevents.
+ */
+function SiteList({
+  title,
+  hint,
+  placeholder,
+  sites,
+  onChange,
+  emptyNote
+}: {
+  title: string
+  hint: string
+  placeholder: string
+  sites: string[]
+  onChange: (sites: string[]) => void
+  emptyNote: string
+}): React.JSX.Element {
+  const [draft, setDraft] = useState('')
+  const [error, setError] = useState('')
+
+  const add = (): void => {
+    const site = normaliseSite(draft)
+    if (!site) {
+      // The most common miss by far is a bare word with no dot.
+      setError(draft.trim() ? 'that does not look like a website address' : '')
+      return
+    }
+    if (sites.some((s) => s === site)) {
+      setError(`${site} is already on this list`)
+      setDraft('')
+      return
+    }
+    onChange([...sites, site])
+    setDraft('')
+    setError('')
+  }
+
+  const remove = (site: string): void => {
+    onChange(sites.filter((s) => s !== site))
+    setError('')
+  }
+
+  return (
+    <div className="panel stack" style={{ marginBottom: 'var(--s5)' }}>
+      <div className="setting-label">
+        <span>{title}</span>
+        <p className="setting-hint">{hint}</p>
+      </div>
+
+      <div className="row">
+        <input
+          className="field"
+          style={{ flex: 1, minWidth: 0 }}
+          placeholder={placeholder}
+          value={draft}
+          aria-label={`Add a site to ${title}`}
+          aria-invalid={Boolean(error)}
+          onChange={(e) => {
+            setDraft(e.target.value)
+            if (error) setError('')
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              add()
+            }
+          }}
+        />
+        <button className="btn btn-sm" onClick={add} disabled={!draft.trim()}>
+          Add
+        </button>
+      </div>
+
+      {error && (
+        <p className="setting-hint" role="alert" style={{ color: 'var(--clay)' }}>
+          {error}
+        </p>
+      )}
+
+      {sites.length === 0 ? (
+        <p className="setting-hint">{emptyNote}</p>
+      ) : (
+        <ul className="site-list">
+          {sites.map((site) => (
+            <li key={site}>
+              <span>{site}</span>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => remove(site)}
+                aria-label={`Remove ${site}`}
+                title={`Remove ${site}`}
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 

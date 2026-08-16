@@ -10,15 +10,7 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "*://*.youtube.com/*",
-        "*://*.reddit.com/*",
-        "*://x.com/*",
-        "*://*.twitter.com/*",
-        "*://*.instagram.com/*",
-        "*://*.tiktok.com/*",
-        "*://*.facebook.com/*"
-      ],
+      "matches": ["*://*/*"],
       "js": ["content.js"],
       "css": ["hide.css"],
       "run_at": "document_idle"

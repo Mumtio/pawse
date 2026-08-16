@@ -487,6 +487,34 @@
   color: var(--text-dim);
 }
 
+/* -- editable site lists -------------------------------------------------- */
+.site-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* Long lists scroll inside the panel rather than pushing the tab off-screen. */
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.site-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s2) 0;
+  border-bottom: var(--border-line);
+}
+
+.site-list li:last-child {
+  border-bottom: none;
+}
+
+.site-list li span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 /* -- dialog --------------------------------------------------------------- */
 .scrim {
   position: fixed;
