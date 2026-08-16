@@ -1,4 +1,4 @@
-import type { LlmSettings, Quest } from '@shared/types'
+import type { LlmSettings, Quest, QuestSource } from '@shared/types'
 import { makeQuest, type ChapterSeed } from './quests'
 
 /**
@@ -59,14 +59,16 @@ interface RawQuest {
 export async function generateQuest(
   text: string,
   theme: string,
-  llm: LlmSettings
+  llm: LlmSettings,
+  /** Where the text came from, so the quest can say so on its ticket. */
+  source: QuestSource = 'paste'
 ): Promise<GenerationResult> {
   const trimmed = text.trim()
   if (!trimmed) throw new Error('Nothing to read yet — paste your assignment text first.')
 
   if (llm.provider === 'none' || (!llm.apiKey && llm.provider !== 'ollama')) {
     return {
-      quest: localQuest(trimmed, theme),
+      quest: localQuest(trimmed, theme, source),
       usedFallback: true,
       notice: 'Made this offline — add a key in Settings › Connections for richer chapters.'
     }
@@ -74,14 +76,14 @@ export async function generateQuest(
 
   try {
     const raw = await callProvider(trimmed, theme, llm)
-    const quest = questFromRaw(raw, trimmed, theme)
+    const quest = questFromRaw(raw, trimmed, theme, source)
     if (!quest) throw new Error('The model returned an unusable shape.')
     return { quest, usedFallback: false }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     console.error('[llm] generation failed, using local splitter:', message)
     return {
-      quest: localQuest(trimmed, theme),
+      quest: localQuest(trimmed, theme, source),
       usedFallback: true,
       notice: `Couldn't reach the model (${message}) — built this one offline instead.`
     }
@@ -230,7 +232,12 @@ function parseLooseJson(raw: string): RawQuest {
   }
 }
 
-function questFromRaw(raw: RawQuest, sourceText: string, theme: string): Quest | null {
+function questFromRaw(
+  raw: RawQuest,
+  sourceText: string,
+  theme: string,
+  source: QuestSource
+): Quest | null {
   const chapters = (raw.chapters ?? [])
     .filter((c) => c?.title && c?.realTask)
     .slice(0, 8)
@@ -246,7 +253,9 @@ function questFromRaw(raw: RawQuest, sourceText: string, theme: string): Quest |
     raw.title?.trim() || 'A new quest',
     raw.subtitle?.trim() || firstLine(sourceText),
     chapters,
-    'llm',
+    // Where it came from beats how it was processed: "notion" is the useful
+    // label on the ticket, and every model-built quest is already 'llm'.
+    source === 'paste' ? 'llm' : source,
     theme
   )
   quest.dueAt = findDueDate(sourceText)
@@ -293,7 +302,7 @@ const ACTION_WORDS =
  * network. It only ever regroups and retitles lines that are already in the
  * text — same contract as the model path.
  */
-export function localQuest(text: string, theme: string): Quest {
+export function localQuest(text: string, theme: string, source: QuestSource = 'paste'): Quest {
   const lines = text
     .split(/\r?\n/)
     .map((l) => l.replace(/^[\s>*\-•]+/, '').replace(/^\d+[.)]\s*/, '').trim())
@@ -318,7 +327,7 @@ export function localQuest(text: string, theme: string): Quest {
     reward: DEFAULT_REWARDS[i % DEFAULT_REWARDS.length]
   }))
 
-  const quest = makeQuest(titleCase(firstLine(text)) || 'A new quest', firstLine(text), chapters, 'paste', theme)
+  const quest = makeQuest(titleCase(firstLine(text)) || 'A new quest', firstLine(text), chapters, source, theme)
   quest.dueAt = findDueDate(text)
   return quest
 }

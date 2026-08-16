@@ -137,7 +137,25 @@ export interface Chapter {
   doneAt?: number
 }
 
-export type QuestSource = 'manual' | 'paste' | 'file' | 'llm'
+export type QuestSource = 'manual' | 'paste' | 'file' | 'llm' | 'notion'
+
+/**
+ * An internal integration token, not OAuth: a desktop app that ships its
+ * source cannot keep a client secret, and the user can revoke this from
+ * Notion's own settings without involving Pawse.
+ */
+export interface NotionSettings {
+  token: string
+}
+
+/** A page or database the Notion integration has been given access to. */
+export interface NotionPage {
+  id: string
+  object: 'page' | 'database'
+  title: string
+  url?: string
+  editedAt?: number
+}
 
 export interface Quest {
   id: string
@@ -288,6 +306,7 @@ export interface Settings {
   volume: number
 
   llm: LlmSettings
+  notion: NotionSettings
   trackingPaused: boolean
   /** Pairing code for the browser extension. Generated on first run. */
   bridgeToken: string
@@ -347,6 +366,8 @@ export interface RuntimeState {
   extensionConnected: boolean
   /** True while a quest generation request is in flight. */
   llmBusy: boolean
+  /** True while a Notion search or import is in flight. */
+  notionBusy: boolean
   /** Set by "still good" — no scroll check-ins until this epoch ms. */
   doomscrollSnoozeUntil?: number
   /** When the cat last spoke up of its own accord. */
@@ -423,6 +444,9 @@ export type Intent =
   | { type: 'focus:dismissSummary' }
   | { type: 'quest:create'; title: string; subtitle: string; chapters: Array<Pick<Chapter, 'title' | 'realTask' | 'estMinutes' | 'reward'>> }
   | { type: 'quest:generate'; text: string; theme: string }
+  | { type: 'notion:test' }
+  | { type: 'notion:search'; query: string }
+  | { type: 'notion:import'; pageId: string; theme: string }
   | { type: 'quest:acceptDraft' }
   | { type: 'quest:discardDraft' }
   | { type: 'quest:toggleChapter'; questId: string; chapterId: string }

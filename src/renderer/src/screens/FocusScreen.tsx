@@ -250,25 +250,6 @@ function SetupSession({
         </div>
       </section>
 
-      <section className="stack">
-        <p className="section-label">Gatekeeper</p>
-        <div className="panel stack">
-          {state.runtime.extensionConnected ? (
-            <>
-              <p style={{ color: 'var(--moss)' }}>
-                Allowed: docs sites, your current tab, anything you approve
-              </p>
-              <p className="muted">Hidden: YouTube feed + Shorts, Reddit home, X timeline</p>
-            </>
-          ) : (
-            <p className="muted">
-              browser extension not connected — focus still works, feeds just won't be hidden.
-              see Settings › Connections.
-            </p>
-          )}
-        </div>
-      </section>
-
       <div className="row">
         <div className="spacer" />
         <button className="btn btn-primary" onClick={start}>

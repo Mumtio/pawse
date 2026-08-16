@@ -17,6 +17,7 @@ import { addQuest, makeQuest, toggleChapter, archiveQuest } from './quests'
 import { playSound } from './sound'
 import { feed, rewardReturn, setTransientMood } from './pet'
 import { generateQuest } from './llm'
+import { fetchPageText, searchNotion, testNotion } from './notion'
 import { pushLog } from './log'
 import { getDataDir } from './store'
 import {
@@ -164,6 +165,61 @@ async function handleIntent(
           s.runtime.llmBusy = false
         })
         throw err
+      }
+    }
+
+    // -- notion -----------------------------------------------------------
+    case 'notion:test': {
+      const workspace = await testNotion(state.settings.notion)
+      return { ok: true, data: { workspace } }
+    }
+
+    case 'notion:search': {
+      mutate((s) => {
+        s.runtime.notionBusy = true
+      })
+      try {
+        const pages = await searchNotion(state.settings.notion, intent.query)
+        return { ok: true, data: { pages } }
+      } finally {
+        // Always clears, so a failed search can't leave the dialog spinning
+        // with no way back other than closing it.
+        mutate((s) => {
+          s.runtime.notionBusy = false
+        })
+      }
+    }
+
+    /**
+     * Pull a page's text, then hand it to exactly the same generator the paste
+     * box uses. Notion is a new way in, not a second pipeline — the approval
+     * step, the offline fallback, and the "never invent requirements" contract
+     * all apply unchanged.
+     */
+    case 'notion:import': {
+      mutate((s) => {
+        s.runtime.notionBusy = true
+        s.runtime.llmBusy = true
+        s.runtime.llmNotice = undefined
+      })
+      try {
+        const text = await fetchPageText(state.settings.notion, intent.pageId)
+        const { quest, notice } = await generateQuest(
+          text,
+          intent.theme,
+          state.settings.llm,
+          'notion'
+        )
+        mutate((s) => {
+          s.questDraft = quest
+          s.runtime.llmNotice = notice
+        })
+        return { ok: true, data: { notice } }
+      } finally {
+        mutate((s) => {
+          s.runtime.notionBusy = false
+          s.runtime.llmBusy = false
+        })
       }
     }
 

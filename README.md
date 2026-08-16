@@ -33,6 +33,9 @@ Everything works offline and stays on your computer.
   is the only way food appears.
 - **Quest generation** — paste an assignment and get chapters back, using whichever free model you
   connect. Falls back to a local splitter with no key and no network.
+- **Notion import** — pull an assignment straight from a Notion page instead of pasting it. Read
+  only: Pawse never creates, edits, or deletes anything in a workspace, and the integration can
+  only see pages you explicitly share with it.
 - **Gatekeeper extension** — hides YouTube's home feed, Shorts and watch sidebar, Reddit's front
   page, and X's timeline while a session runs. Notices long scroll stretches and has the cat ask
   about it once. The blocked list is yours to edit, and study sites can be marked as always-allowed
@@ -41,8 +44,9 @@ Everything works offline and stays on your computer.
 
 ## Not built yet
 
-Notion sync, the pet's room and decoration, outfits, mood check-ins, app blocking, and packaged
-installers. The Import button currently accepts pasted text rather than reading from Notion.
+The pet's room and decoration, outfits, mood check-ins, app blocking (as opposed to site blocking),
+and packaged installers. Notion import is one-way and manual — there's no background sync, and
+nothing is ever written back to a workspace.
 
 ---
 
@@ -89,6 +93,21 @@ in the local data file and only ever sent to the provider you pick.
 
 Generated chapters are **always shown for approval before anything is saved**. The model is asked
 to regroup and rename work that is already in your text — never to invent requirements.
+
+### Notion
+
+Uses an **internal integration token**, not OAuth. A desktop app that ships its own source can't
+keep a client secret — every install would share one and anyone could lift it from the repo. An
+internal token is created by you, stays on your machine, and is revocable from Notion's settings
+without involving Pawse.
+
+1. `notion.so/my-integrations` › **New integration** › read-only capabilities are enough
+2. Paste its Internal Integration Secret into Settings › Connections
+3. **Open the page you want to import and share it with your integration** from its ⋯ menu
+
+Step 3 is the one people miss. A new integration starts with access to nothing, so a valid token
+on its own will still return an empty list — which also means the blast radius of this feature is
+exactly the pages you deliberately connect.
 
 ### Browser extension
 
@@ -160,7 +179,9 @@ lost, and the app still opens. "Export everything" is a copy of this file.
 ## Privacy
 
 - Activity analysis happens locally. Nothing is sent anywhere except the model provider you
-  explicitly connect.
+  explicitly connect, and Notion if you connect that.
+- Notion access is read-only and scoped to the pages you share with your integration. Page text is
+  pulled on demand for one import and is not stored or synced.
 - The extension loads on every site, because the blocked list is editable at runtime and a manifest
   isn't. It only ever reports a **domain** for sites on one of your two lists; everywhere else it
   reports the single bit "unlisted" with no domain attached, which is all the cat needs to know you

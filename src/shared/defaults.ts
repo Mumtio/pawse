@@ -89,6 +89,7 @@ export const defaultSettings: Settings = {
     model: 'gemini-2.0-flash',
     baseUrl: ''
   },
+  notion: { token: '' },
   trackingPaused: false,
   bridgeToken: ''
 }
@@ -231,6 +232,7 @@ export function createInitialState(now = Date.now()): PersistedState {
     settings: {
       ...defaultSettings,
       llm: { ...defaultSettings.llm },
+      notion: { ...defaultSettings.notion },
       bridgeToken: makeBridgeToken()
     }
   }

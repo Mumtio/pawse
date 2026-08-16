@@ -59,7 +59,8 @@ function migrate(state: PersistedState): PersistedState {
     settings: {
       ...defaultSettings,
       ...state.settings,
-      llm: { ...defaultSettings.llm, ...state.settings?.llm }
+      llm: { ...defaultSettings.llm, ...state.settings?.llm },
+      notion: { ...defaultSettings.notion, ...state.settings?.notion }
     },
     // Added after the first release, so an existing file won't have it.
     siteTime: state.siteTime ?? {}

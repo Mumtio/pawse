@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ClientState, Quest } from '@shared/types'
+import type { ClientState, NotionPage, Quest } from '@shared/types'
 import type { Route, Send } from '../App'
 import type { Prefill } from './Today'
 import { shortDate } from './Today'
@@ -233,6 +233,110 @@ const THEMES = [
 ]
 
 /**
+ * Pick a Notion page to import.
+ *
+ * Searching is explicit rather than on every keystroke: each one is a network
+ * round-trip against someone's real workspace, and Notion rate-limits. An empty
+ * query is valid and lists everything shared with the integration, which is the
+ * common case — most people have connected two or three pages, not two hundred.
+ */
+function NotionPicker({
+  state,
+  send,
+  theme
+}: {
+  state: ClientState
+  send: Send
+  theme: string
+}): React.JSX.Element {
+  const [query, setQuery] = useState('')
+  const [pages, setPages] = useState<NotionPage[] | null>(null)
+  const [error, setError] = useState('')
+  const busy = state.runtime.notionBusy || state.runtime.llmBusy
+  const hasToken = state.settings.notion.token.trim().length > 0
+
+  const search = async (): Promise<void> => {
+    setError('')
+    const res = await send({ type: 'notion:search', query })
+    if (res.ok) setPages(((res.data as { pages?: NotionPage[] })?.pages ?? []))
+    else {
+      setPages(null)
+      setError(res.error ?? 'could not reach Notion')
+    }
+  }
+
+  if (!hasToken) {
+    return (
+      <p className="notice">
+        no Notion token yet — add one in Settings › Connections, then share the page you want with
+        your integration.
+      </p>
+    )
+  }
+
+  return (
+    <div className="stack">
+      <div className="row">
+        <input
+          className="field"
+          style={{ flex: 1, minWidth: 0 }}
+          placeholder="search your Notion pages, or leave blank for all"
+          value={query}
+          disabled={busy}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              void search()
+            }
+          }}
+        />
+        <button className="btn btn-sm" onClick={() => void search()} disabled={busy}>
+          {state.runtime.notionBusy ? 'looking…' : 'Search'}
+        </button>
+      </div>
+
+      {error && <p className="notice">{error}</p>}
+
+      {pages !== null && pages.length === 0 && !error && (
+        /*
+          Far more often "nothing has been shared with the integration yet"
+          than "no matches", so it says the thing that actually unblocks them
+          instead of a bare "no results".
+        */
+        <p className="notice">
+          nothing came back. open the Notion page you want, then share it with your integration from
+          the ⋯ menu — a new integration can't see anything until you do.
+        </p>
+      )}
+
+      {pages && pages.length > 0 && (
+        <div className="stack">
+          {pages.map((page) => (
+            <div className="row" key={page.id}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p className="chapter-title">{page.title}</p>
+                <p className="chapter-meta">
+                  {page.object}
+                  {page.editedAt ? ` · edited ${shortDate(page.editedAt)}` : ''}
+                </p>
+              </div>
+              <button
+                className="btn btn-sm btn-primary"
+                disabled={busy}
+                onClick={() => void send({ type: 'notion:import', pageId: page.id, theme })}
+              >
+                {busy ? '…' : 'Use this'}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
  * Generated chapters are always shown for approval before anything is saved.
  * Pawse must never quietly rewrite someone's coursework requirements.
  */
@@ -247,6 +351,7 @@ function ImportDialog({
 }): React.JSX.Element {
   const [text, setText] = useState('')
   const [theme, setTheme] = useState(THEMES[0])
+  const [source, setSource] = useState<'paste' | 'notion'>('paste')
   const draft = state.questDraft
   const busy = state.runtime.llmBusy
 
@@ -257,17 +362,30 @@ function ImportDialog({
           <>
             <h2>Turn work into a quest</h2>
             <p className="muted">
-              paste your assignment, brief, or to-do list. {state.pet.name} regroups what's already
-              there — nothing is invented, and you approve it before it's saved.
+              {state.pet.name} regroups what's already there — nothing is invented, and you approve
+              it before it's saved.
             </p>
 
-            <textarea
-              className="field"
-              placeholder="Paste the assignment text here…"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              disabled={busy}
-            />
+            <div className="seg">
+              <button aria-pressed={source === 'paste'} onClick={() => setSource('paste')} disabled={busy}>
+                Paste text
+              </button>
+              <button aria-pressed={source === 'notion'} onClick={() => setSource('notion')} disabled={busy}>
+                From Notion
+              </button>
+            </div>
+
+            {source === 'notion' ? (
+              <NotionPicker state={state} send={send} theme={theme} />
+            ) : (
+              <textarea
+                className="field"
+                placeholder="Paste the assignment text here…"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                disabled={busy}
+              />
+            )}
 
             <div className="row">
               <span className="label">theme</span>
@@ -287,13 +405,16 @@ function ImportDialog({
               <button className="btn btn-ghost" onClick={onClose} disabled={busy}>
                 Cancel
               </button>
-              <button
-                className="btn btn-primary"
-                disabled={busy || !text.trim()}
-                onClick={() => void send({ type: 'quest:generate', text, theme })}
-              >
-                {busy ? 'reading…' : 'Generate chapters'}
-              </button>
+              {/* Notion generates from the page you pick, so it has no button here. */}
+              {source === 'paste' && (
+                <button
+                  className="btn btn-primary"
+                  disabled={busy || !text.trim()}
+                  onClick={() => void send({ type: 'quest:generate', text, theme })}
+                >
+                  {busy ? 'reading…' : 'Generate chapters'}
+                </button>
+              )}
             </div>
 
             {state.settings.llm.provider === 'none' && (

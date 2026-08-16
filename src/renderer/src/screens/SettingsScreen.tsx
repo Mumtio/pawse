@@ -327,6 +327,93 @@ export function SettingsScreen({
 // ---------------------------------------------------------------------------
 
 /**
+ * Notion, via an internal integration token.
+ *
+ * The four steps below are the whole setup and people get stuck without them —
+ * particularly the sharing step, which has no equivalent in most integrations
+ * and is the reason a correct token still returns nothing.
+ */
+function NotionPanel({
+  state,
+  send,
+  set
+}: {
+  state: ClientState
+  send: Send
+  set: (p: Partial<ClientState['settings']>) => void
+}): React.JSX.Element {
+  const notion = state.settings.notion
+  const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null)
+  const [testing, setTesting] = useState(false)
+
+  const test = async (): Promise<void> => {
+    setTesting(true)
+    setStatus(null)
+    const res = await send({ type: 'notion:test' })
+    setTesting(false)
+    if (res?.ok) {
+      const workspace = (res.data as { workspace?: string } | undefined)?.workspace
+      setStatus({ ok: true, text: `connected to ${workspace ?? 'your workspace'}` })
+    } else {
+      setStatus({ ok: false, text: res?.error ?? 'could not reach Notion' })
+    }
+  }
+
+  return (
+    <>
+      <p className="section-label" style={{ marginTop: 'var(--s8)' }}>
+        Notion
+      </p>
+      <p className="muted" style={{ margin: 'var(--s2) 0 var(--s4)', fontSize: 'var(--t-xs)' }}>
+        Optional. Import an assignment straight from a Notion page instead of pasting it. Pawse only
+        ever reads — it never creates, edits, or deletes anything in your workspace.
+      </p>
+
+      <Row label="Integration token">
+        <input
+          className="field"
+          style={{ width: 280 }}
+          type="password"
+          placeholder="ntn_…"
+          value={notion.token}
+          onChange={(e) => set({ notion: { ...notion, token: e.target.value } })}
+        />
+      </Row>
+
+      <div className="row">
+        <div className="spacer" />
+        <button className="btn btn-sm" onClick={() => void test()} disabled={testing || !notion.token.trim()}>
+          {testing ? 'checking…' : 'Test connection'}
+        </button>
+      </div>
+
+      {status && (
+        <p
+          className="setting-hint"
+          role="status"
+          style={{ color: status.ok ? 'var(--moss)' : 'var(--clay)' }}
+        >
+          {status.text}
+        </p>
+      )}
+
+      <ol className="setup-steps">
+        <li>
+          Go to <code>notion.so/my-integrations</code> and create a new internal integration.
+        </li>
+        <li>Give it read access only — Pawse never needs to write.</li>
+        <li>Copy its Internal Integration Secret into the box above.</li>
+        <li>
+          <strong>Open the Notion page you want to import, and share it with your integration</strong>{' '}
+          from the ⋯ menu. A new integration can see nothing until you do this, so a valid token on
+          its own will still find no pages.
+        </li>
+      </ol>
+    </>
+  )
+}
+
+/**
  * An editable list of domains.
  *
  * Entries are normalised on the way in, so pasting a whole URL works and lands
@@ -542,6 +629,8 @@ function Connections({
           )}
         </>
       )}
+
+      <NotionPanel state={state} send={send} set={set} />
 
       <p className="section-label" style={{ marginTop: 'var(--s8)' }}>
         Browser extension

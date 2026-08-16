@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { ClientState, Intent } from '@shared/types'
+import type { ClientState, Intent, IntentResult } from '@shared/types'
 import { usePawse } from './lib/usePawse'
 import { Glyph } from './components/Glyph'
 import { PixelSprite } from './cat/PixelSprite'
@@ -178,4 +178,4 @@ function formatShortClock(sec: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
-export type Send = (intent: Intent) => Promise<void>
+export type Send = (intent: Intent) => Promise<IntentResult>

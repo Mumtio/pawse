@@ -487,6 +487,19 @@
   color: var(--text-dim);
 }
 
+/* Numbered setup instructions, e.g. connecting a Notion integration. */
+.setup-steps {
+  margin: var(--s4) 0 0;
+  padding-left: var(--s5);
+  font-size: var(--t-xs);
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+.setup-steps li {
+  margin-bottom: var(--s2);
+}
+
 /* Marks a row in "where the time went" as being on the blocked list. */
 .site-dot {
   width: 7px;

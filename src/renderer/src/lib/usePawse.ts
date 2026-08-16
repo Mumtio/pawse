@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { ClientState, Intent } from '@shared/types'
+import type { ClientState, Intent, IntentResult } from '@shared/types'
 
 /**
  * Subscribes to main's state broadcasts. Renderers are read-only views: they
  * render whatever arrives and describe user actions back as intents.
+ *
+ * `send` resolves with main's result as well as logging failures. Most callers
+ * ignore it and re-render from the next broadcast, but anything that asks a
+ * question rather than causing a change — testing a token, listing pages —
+ * needs the answer handed straight back rather than routed through state.
  */
 export function usePawse(): {
   state: ClientState | null
-  send: (intent: Intent) => Promise<void>
+  send: (intent: Intent) => Promise<IntentResult>
 } {
   const [state, setState] = useState<ClientState | null>(null)
 
@@ -23,11 +28,12 @@ export function usePawse(): {
     }
   }, [])
 
-  const send = useCallback(async (intent: Intent) => {
+  const send = useCallback(async (intent: Intent): Promise<IntentResult> => {
     const result = await window.pawse.send(intent)
     if (!result.ok && result.error && result.error !== 'cancelled') {
       console.error('[pawse] intent rejected:', intent.type, result.error)
     }
+    return result
   }, [])
 
   return { state, send }
