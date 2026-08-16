@@ -323,6 +323,15 @@ export interface AppState {
   questDraft: Quest | null
   bubbles: Bubble[]
   log: LogEntry[]
+  /**
+   * Milliseconds spent per site, as `dayStart -> domain -> ms`.
+   *
+   * Aggregated rather than logged per report: the extension checks in every
+   * few seconds, and one log entry per check-in would be tens of thousands of
+   * rows a week to answer a question that only needs a total. Only domains on
+   * your own two lists ever appear — everything else is reported without one.
+   */
+  siteTime: Record<string, Record<string, number>>
   settings: Settings
   /** Not persisted — recomputed each boot. */
   runtime: RuntimeState
@@ -369,12 +378,23 @@ export interface Insights {
   sessionsToday: number
   chaptersToday: number
   returns: number
-  /** Today in half-hour slots, 09:00 → 21:00, for the "Your day" strip. */
+  /**
+   * Today in half-hour slots, for the "Your day" strip. The window follows the
+   * day's actual activity rather than assuming office hours, so each slot
+   * carries its own timestamp and the axis is drawn from these.
+   */
   dayStrip: Array<{ at: number; state: DaySlotState }>
   /** Focused minutes per hour of day across the last 7 days. */
   hourHistogram: number[]
   care: Array<{ kind: ReminderKind; label: string; done: number; of: number }>
-  topDomains: Array<{ domain: string; minutes: number }>
+  /**
+   * Where time went over the last 7 days, biggest first. `blocked` is what
+   * separates "what distracts me most" from "where I actually work" — both are
+   * shown, because a list of only the bad news is a list people stop opening.
+   */
+  topDomains: Array<{ domain: string; minutes: number; blocked: boolean }>
+  /** Minutes on blocked sites over the last 7 days, and today. */
+  distractedMinutesWeek: number
   /** Plain-language readouts the cat says out loud. Observations, not verdicts. */
   observations: string[]
   /** Only set once there's genuinely enough data to say something. */

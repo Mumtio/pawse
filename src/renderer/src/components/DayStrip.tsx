@@ -12,7 +12,10 @@ export function DayStrip({
 }: {
   slots: Array<{ at: number; state: DaySlotState }>
 }): React.JSX.Element {
-  const labels = [9, 11, 13, 15, 17, 19, 21]
+  // The window follows the day's activity, so the axis is read off the slots
+  // rather than assumed. A hardcoded 9-to-9 axis silently mislabels every
+  // column on any day that started earlier or ran later.
+  const labels = axisLabels(slots)
 
   return (
     <div>
@@ -31,7 +34,7 @@ export function DayStrip({
 
       <div className="daystrip-axis">
         {labels.map((h) => (
-          <span key={h}>{h > 12 ? `${h - 12}p` : `${h}a`}</span>
+          <span key={h}>{fmtHour(h)}</span>
         ))}
       </div>
 
@@ -57,4 +60,24 @@ export function DayStrip({
       </div>
     </div>
   )
+}
+
+/** Roughly six evenly spaced hour marks across whatever window the strip covers. */
+function axisLabels(slots: Array<{ at: number }>): number[] {
+  if (slots.length === 0) return []
+  const first = new Date(slots[0].at).getHours()
+  const last = new Date(slots[slots.length - 1].at).getHours() + 1
+  const span = Math.max(1, last - first)
+  const step = Math.max(1, Math.round(span / 6))
+
+  const out: number[] = []
+  for (let h = first; h <= last; h += step) out.push(h)
+  return out
+}
+
+function fmtHour(h: number): string {
+  const hour = h % 24
+  if (hour === 0) return '12a'
+  if (hour === 12) return '12p'
+  return hour > 12 ? `${hour - 12}p` : `${hour}a`
 }

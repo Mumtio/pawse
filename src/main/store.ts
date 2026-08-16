@@ -60,7 +60,9 @@ function migrate(state: PersistedState): PersistedState {
       ...defaultSettings,
       ...state.settings,
       llm: { ...defaultSettings.llm, ...state.settings?.llm }
-    }
+    },
+    // Added after the first release, so an existing file won't have it.
+    siteTime: state.siteTime ?? {}
   }
   // Installs made before pairing existed have no token; without one the
   // extension can never authenticate, so mint it on the way through.

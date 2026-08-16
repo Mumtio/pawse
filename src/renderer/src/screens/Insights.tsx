@@ -73,22 +73,46 @@ export function Insights({ state, send }: { state: ClientState; send: Send }): R
           <p className="section-label">Where the time went</p>
           {insights.topDomains.length === 0 ? (
             <p className="faint" style={{ fontSize: 'var(--t-xs)' }}>
-              needs the browser extension — nothing is recorded without it, and only domains ever
-              are.
+              {state.runtime.extensionConnected
+                ? 'the extension is connected — this fills in as you browse. only sites on your two lists are ever recorded.'
+                : 'needs the browser extension — nothing is recorded without it, and only domains ever are.'}
             </p>
           ) : (
-            insights.topDomains.map((d) => (
-              <div className="row" key={d.domain}>
-                <span>{d.domain}</span>
-                <div className="spacer" />
-                <span className="muted">{d.minutes}m</span>
-              </div>
-            ))
+            <>
+              {insights.distractedMinutesWeek > 0 && (
+                <p className="faint" style={{ fontSize: 'var(--t-xs)' }}>
+                  {duration(insights.distractedMinutesWeek)} of this was on blocked sites.
+                </p>
+              )}
+              {insights.topDomains.map((d) => (
+                <div className="row" key={d.domain}>
+                  {/*
+                    The dot is the only mark of judgement on this screen, and it
+                    reports a setting rather than an opinion: it means "this is
+                    on your blocked list", not "this was time badly spent".
+                  */}
+                  <span
+                    className="site-dot"
+                    data-blocked={d.blocked}
+                    aria-hidden="true"
+                  />
+                  <span>{d.domain}</span>
+                  <div className="spacer" />
+                  <span className="muted">{duration(d.minutes)}</span>
+                </div>
+              ))}
+              <p className="faint" style={{ fontSize: 'var(--t-xs)' }}>
+                ● blocked while focusing · ○ everything else
+              </p>
+            </>
           )}
         </div>
 
         <div className="stack" style={{ flex: 1 }}>
           <p className="section-label">Care</p>
+          <p className="faint" style={{ fontSize: 'var(--t-xs)' }}>
+            days in the last 7 you confirmed each reminder at least once.
+          </p>
           {insights.care.map((c) => (
             <div className="row" key={c.kind}>
               <span>{c.label}</span>
@@ -100,13 +124,15 @@ export function Insights({ state, send }: { state: ClientState; send: Send }): R
           ))}
         </div>
       </section>
-
-      <p className="faint" style={{ fontSize: 'var(--t-xs)' }}>
-        Returns after distraction: {insights.returns} · these are patterns, not conclusions about
-        your health.
-      </p>
     </>
   )
+}
+
+function duration(minutes: number): string {
+  if (minutes < 60) return `${minutes}m`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m === 0 ? `${h}h` : `${h}h ${m}m`
 }
 
 function label(hour: number): string {

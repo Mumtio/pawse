@@ -487,6 +487,19 @@
   color: var(--text-dim);
 }
 
+/* Marks a row in "where the time went" as being on the blocked list. */
+.site-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border: 1px solid var(--cream-deep);
+  background: transparent;
+}
+
+.site-dot[data-blocked='true'] {
+  background: var(--cream-deep);
+}
+
 /* -- editable site lists -------------------------------------------------- */
 .site-list {
   list-style: none;

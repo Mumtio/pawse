@@ -94,6 +94,31 @@ export const defaultSettings: Settings = {
 }
 
 /**
+ * How often the cat may speak up unprompted, at talkativeness 0 and 1.
+ *
+ * Shared rather than kept in the nudge engine because Settings has to be able
+ * to say what the slider actually means — a bare 0-100 slider called
+ * "talkativeness" tells you nothing about how often the cat will interrupt.
+ */
+export const QUIETEST_NUDGE_MS = 10 * 60_000
+export const CHATTIEST_NUDGE_MS = 30_000
+
+/** Minimum gap between unprompted remarks, from the talkativeness slider. */
+export function nudgeIntervalMs(talkativeness: number): number {
+  const t = Math.min(1, Math.max(0, talkativeness))
+  return QUIETEST_NUDGE_MS + (CHATTIEST_NUDGE_MS - QUIETEST_NUDGE_MS) * t
+}
+
+/** The same number as a phrase, for the settings row. */
+export function describeNudgeInterval(talkativeness: number): string {
+  if (talkativeness <= 0) return 'never — the cat only speaks when spoken to'
+  const minutes = nudgeIntervalMs(talkativeness) / 60_000
+  const rounded = minutes < 1 ? Math.round(minutes * 60) : Math.round(minutes * 2) / 2
+  const unit = minutes < 1 ? `${rounded} seconds` : `${rounded} minute${rounded === 1 ? '' : 's'}`
+  return `at most one bubble every ${unit}`
+}
+
+/**
  * A short, readable pairing code — the kind you can type off a screen without
  * squinting. Ambiguous characters (0/O, 1/I) are left out on purpose.
  */
@@ -202,6 +227,7 @@ export function createInitialState(now = Date.now()): PersistedState {
     questDraft: null,
     bubbles: [],
     log: [],
+    siteTime: {},
     settings: {
       ...defaultSettings,
       llm: { ...defaultSettings.llm },
