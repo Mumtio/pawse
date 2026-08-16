@@ -68,8 +68,8 @@ export function Insights({ state, send }: { state: ClientState; send: Send }): R
         )}
       </section>
 
-      <section className="row" style={{ alignItems: 'flex-start', gap: 'var(--s10)' }}>
-        <div className="stack" style={{ flex: 1 }}>
+      <section className="stack">
+        <div className="stack">
           <p className="section-label">Where the time went</p>
           {insights.topDomains.length === 0 ? (
             <p className="faint" style={{ fontSize: 'var(--t-xs)' }}>
@@ -106,22 +106,6 @@ export function Insights({ state, send }: { state: ClientState; send: Send }): R
               </p>
             </>
           )}
-        </div>
-
-        <div className="stack" style={{ flex: 1 }}>
-          <p className="section-label">Care</p>
-          <p className="faint" style={{ fontSize: 'var(--t-xs)' }}>
-            days in the last 7 you confirmed each reminder at least once.
-          </p>
-          {insights.care.map((c) => (
-            <div className="row" key={c.kind}>
-              <span>{c.label}</span>
-              <div className="spacer" />
-              <span className="muted">
-                {c.done} of {c.of} days
-              </span>
-            </div>
-          ))}
         </div>
       </section>
     </>

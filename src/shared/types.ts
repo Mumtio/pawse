@@ -407,7 +407,6 @@ export interface Insights {
   dayStrip: Array<{ at: number; state: DaySlotState }>
   /** Focused minutes per hour of day across the last 7 days. */
   hourHistogram: number[]
-  care: Array<{ kind: ReminderKind; label: string; done: number; of: number }>
   /**
    * Where time went over the last 7 days, biggest first. `blocked` is what
    * separates "what distracts me most" from "where I actually work" — both are

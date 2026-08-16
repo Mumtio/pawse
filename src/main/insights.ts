@@ -1,4 +1,4 @@
-import type { AppState, DaySlotState, Insights, LogEntry, ReminderKind } from '@shared/types'
+import type { AppState, DaySlotState, Insights, LogEntry } from '@shared/types'
 import { isBlockedDomain } from '@shared/defaults'
 import { startOfLocalDay } from './log'
 
@@ -152,15 +152,6 @@ export function computeInsights(state: AppState, now: number): Insights {
     }
   }
 
-  const care = state.reminders
-    .filter((r) => r.enabled)
-    .map((r) => ({
-      kind: r.kind as ReminderKind,
-      label: r.label,
-      done: countConfirmDays(log, r.kind, now),
-      of: 7
-    }))
-
   const returns = today.filter((e) => e.type === 'returned_from_distraction').length
 
   const { blockedSites, studySites } = state.settings
@@ -182,7 +173,6 @@ export function computeInsights(state: AppState, now: number): Insights {
     returns,
     dayStrip,
     hourHistogram: hourHistogram.map((v) => Math.round(v)),
-    care,
     topDomains,
     distractedMinutesWeek,
     observations: observationsFrom({
@@ -270,17 +260,6 @@ function suggestDuration(
     text: `${best.planned}-minute sessions worked better than ${next.planned} for you.`,
     defaultMinutes: best.planned
   }
-}
-
-function countConfirmDays(log: LogEntry[], kind: string, now: number): number {
-  const days = new Set<number>()
-  const weekAgo = now - 7 * DAY_MS
-  for (const e of log) {
-    if (e.type !== 'reminder_confirmed' || e.at < weekAgo) continue
-    if (e.meta?.kind !== kind) continue
-    days.add(startOfLocalDay(e.at))
-  }
-  return days.size
 }
 
 function observationsFrom({
