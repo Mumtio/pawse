@@ -24,6 +24,8 @@
 const POLL_MS = 5000
 /** A gap this long means you stopped scrolling and the streak resets. */
 const SCROLL_IDLE_MS = 2500
+/** While scrolling a blocked site, ping more often than the idle poll. */
+const SCROLL_ACTIVITY_MS = 1000
 /** These sites re-render constantly; re-apply hiding on a steady beat. */
 const REAPPLY_MS = 1200
 
@@ -36,6 +38,9 @@ let focus = {
   blockedSites: [],
   studySites: []
 }
+
+/** False until Pawse has answered once. Unknown lists are not "unlisted". */
+let heardFromPawse = false
 
 // ---------------------------------------------------------------------------
 // Which list this page is on
@@ -60,8 +65,10 @@ function isBlocked() {
 function isListed() {
   return isBlocked() || isStudy()
 }
+
 let scrollingSince = 0
 let lastScrollAt = 0
+let lastActivityPing = 0
 let reportedThisStreak = false
 let note = null
 
@@ -170,27 +177,36 @@ function removeNote() {
 // Scroll watching
 // ---------------------------------------------------------------------------
 
-window.addEventListener(
-  'scroll',
-  () => {
-    const now = Date.now()
-    if (now - lastScrollAt > SCROLL_IDLE_MS) {
-      // Long enough gap that this is a new stretch of scrolling.
-      scrollingSince = now
-      reportedThisStreak = false
-    }
-    lastScrollAt = now
+/**
+ * YouTube Shorts, Instagram Reels, TikTok, X, and Reddit mostly scroll an
+ * inner div — `window` 'scroll' never fires. Wheel and touchmove do.
+ */
+function onScrollLike() {
+  const now = Date.now()
+  if (now - lastScrollAt > SCROLL_IDLE_MS) {
+    scrollingSince = now
+    reportedThisStreak = false
+  }
+  lastScrollAt = now
 
-    if (reportedThisStreak || !scrollingSince) return
-    if (now - scrollingSince < focus.scrollThresholdMs) return
-    // Long reads on unblocked sites are not the problem this is looking for.
-    if (!isBlocked()) return
+  // Tell the cat immediately, not on the next 5s poll. Being on the domain
+  // is what turns it unimpressed; this just means we notice the scroll itself.
+  if (heardFromPawse && isBlocked() && now - lastActivityPing >= SCROLL_ACTIVITY_MS) {
+    lastActivityPing = now
+    send({ type: 'activity', domain, seconds: SCROLL_ACTIVITY_MS / 1000 })
+  }
 
-    reportedThisStreak = true
-    send({ type: 'scroll', domain, scrollingMs: now - scrollingSince })
-  },
-  { passive: true, capture: true }
-)
+  if (reportedThisStreak || !scrollingSince) return
+  if (now - scrollingSince < focus.scrollThresholdMs) return
+  if (!isBlocked()) return
+
+  reportedThisStreak = true
+  send({ type: 'scroll', domain, scrollingMs: now - scrollingSince })
+}
+
+for (const type of ['scroll', 'wheel', 'touchmove']) {
+  window.addEventListener(type, onScrollLike, { passive: true, capture: true })
+}
 
 // ---------------------------------------------------------------------------
 // Talking to Pawse
@@ -207,16 +223,26 @@ function send(payload) {
   }
 }
 
+function reportPresence() {
+  if (!heardFromPawse) return
+  if (isListed()) send({ type: 'activity', domain, seconds: POLL_MS / 1000 })
+  else send({ type: 'activity', unlisted: true, seconds: POLL_MS / 1000 })
+}
+
 function poll() {
-  if (document.hidden) return
+  if (document.hidden || document.prerendering) return
   try {
     chrome.runtime.sendMessage({ type: 'getState' }, (res) => {
       void chrome.runtime.lastError
       if (res && res.ok) {
         focus = res
+        heardFromPawse = true
         applyFocus()
-      } else if (res && res.error === 'offline') {
-        // Pawse closed — put everything back exactly as we found it.
+        reportPresence()
+      } else if (res && (res.error === 'offline' || res.error === 'not-paired' || res.error === 'bad-token')) {
+        // Pawse closed or the pairing code is wrong — put the page back and
+        // stop claiming we know the lists.
+        heardFromPawse = false
         focus = {
           focusActive: false,
           hideFeeds: false,
@@ -227,12 +253,6 @@ function poll() {
         applyFocus()
       }
     })
-    // Reporting the domain is what lets the cat tell working from scrolling —
-    // but only for sites you named. Everywhere else reports itself as
-    // "unlisted" and stays anonymous, which is all the cat needs to know you
-    // have left the feed.
-    if (isListed()) send({ type: 'activity', domain, seconds: POLL_MS / 1000 })
-    else send({ type: 'activity', unlisted: true, seconds: POLL_MS / 1000 })
   } catch {
     /* ignore */
   }

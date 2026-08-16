@@ -55,12 +55,14 @@ export function siteMatches(domain: string, site: string): boolean {
 /** Whether a domain counts as distracting, with study sites winning outright. */
 export function isBlockedDomain(
   domain: string,
-  blockedSites: string[],
-  studySites: string[]
+  blockedSites: string[] | undefined,
+  studySites: string[] | undefined
 ): boolean {
   if (!domain) return false
-  if (studySites.some((s) => siteMatches(domain, s))) return false
-  return blockedSites.some((s) => siteMatches(domain, s))
+  const blocked = blockedSites ?? []
+  const study = studySites ?? []
+  if (study.some((s) => siteMatches(domain, s))) return false
+  return blocked.some((s) => siteMatches(domain, s))
 }
 
 export const defaultSettings: Settings = {

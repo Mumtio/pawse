@@ -6,6 +6,7 @@ import { createTray, destroyTray, updateTray } from './tray'
 import { registerIpc } from './ipc'
 import { startClock, stopClock } from './clock'
 import { startBridge, stopBridge } from './bridge'
+import { addStartupGreeting } from './greeting'
 
 /**
  * Pawse runs as a tray application, not a window application.
@@ -39,6 +40,9 @@ if (!app.requestSingleInstanceLock()) {
 
     initStorePaths()
     const state = initState()
+    // New users get this after choosing their cat's name; returning users get
+    // one hello here each time the app wakes up.
+    if (state.onboarded) addStartupGreeting(state)
 
     createMainWindow(() => {
       // The X button means "put it away".

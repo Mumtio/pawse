@@ -24,6 +24,7 @@ import { autoPauseReason } from '../src/main/focus'
 import { localQuest } from '../src/main/llm'
 import { tickReminders } from '../src/main/reminders'
 import { applyDraftEdits } from '../src/main/quests'
+import { addStartupGreeting } from '../src/main/greeting'
 
 let failures = 0
 
@@ -49,6 +50,12 @@ function state(overrides: Partial<AppState> = {}): AppState {
     ...overrides
   } as AppState
 }
+
+const greetingState = state()
+greetingState.pet.name = 'Moss'
+addStartupGreeting(greetingState, 1_000)
+check('startup greeting uses the cat name', greetingState.bubbles[0]?.text, 'Moss is here. ready when you are.')
+check('startup greeting fades after ten seconds', greetingState.bubbles[0]?.expiresAt, 11_000)
 
 function withSession(s: AppState): AppState {
   const now = Date.now()

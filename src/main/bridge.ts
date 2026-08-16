@@ -138,6 +138,12 @@ function applyEvent(state: AppState, body: BridgeEvent): void {
    * and keeps the domain from going stale, without recording where you went.
    */
   if (body.unlisted) {
+    // Another visible window can poll as "unlisted" in the same beat as the
+    // feed you're actually on. Don't let that wipe a domain we heard about
+    // a moment ago — the next report from that feed will keep it alive, and
+    // if you've really left, it goes stale on its own.
+    const seen = state.runtime.domainSeenAt ?? 0
+    if (state.runtime.currentDomain && Date.now() - seen < 8_000) return
     state.runtime.currentDomain = undefined
     state.runtime.domainSeenAt = Date.now()
     state.runtime.distractedSince = undefined
@@ -176,6 +182,10 @@ function applyEvent(state: AppState, body: BridgeEvent): void {
     // or a docs page reaches us too. Only the user's own blocked list earns a
     // check-in; reading something for hours is not the problem being solved.
     if (!isDistracting(state, domain)) return
+    const now = Date.now()
+    state.runtime.currentDomain = domain
+    state.runtime.domainSeenAt = now
+    state.runtime.distractedSince ??= now
     maybeAskAboutScrolling(state, domain)
   }
 }
@@ -188,6 +198,8 @@ function applyEvent(state: AppState, body: BridgeEvent): void {
  * caught doing something wrong.
  */
 function maybeAskAboutScrolling(state: AppState, domain: string): void {
+  // Same contract as the angry face: scrolling on your own time is yours.
+  if (!state.session) return
   const already = state.bubbles.some((b) => b.kind === 'doomscroll')
   if (already) return
 

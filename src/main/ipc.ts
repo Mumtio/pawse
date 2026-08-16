@@ -20,6 +20,7 @@ import { generateQuest } from './llm'
 import { fetchPageText, searchNotion, testNotion } from './notion'
 import { pushLog } from './log'
 import { getDataDir } from './store'
+import { addStartupGreeting } from './greeting'
 import {
   applyCatSettings,
   beginCatDrag,
@@ -83,7 +84,9 @@ async function handleIntent(
         s.pet.name = intent.name.trim() || 'Moss'
         s.pet.personality = intent.personality
         s.onboarded = true
+        addStartupGreeting(s)
       })
+      playSound('bubble')
       onTrayNeedsUpdate()
       return
 
