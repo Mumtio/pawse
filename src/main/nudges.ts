@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import type { AppState, Bubble, Personality } from '@shared/types'
+import { nudgeIntervalMs } from '@shared/defaults'
 import { isProperlyAngry } from './pet'
 
 /**
@@ -21,16 +22,6 @@ import { isProperlyAngry } from './pet'
  * famous people means attributing them correctly, and a motivational app that
  * confidently misattributes a quote is worse than one with no quotes.
  */
-
-/**
- * How often the cat may speak, at talkativeness 0 and 1 respectively.
- *
- * The top of the range is deliberately chatty — companionable rather than
- * background — and it's also what makes the behaviour demonstrable without
- * sitting and waiting a quarter of an hour for one line.
- */
-const QUIETEST_MS = 10 * 60_000
-const CHATTIEST_MS = 30_000
 
 /** Never within this long of any other bubble. */
 const RESPECT_SILENCE_MS = 45_000
@@ -235,12 +226,6 @@ function pickLine(context: Context, personality: Personality): string {
   return line
 }
 
-/** Minimum gap between unprompted remarks, from the talkativeness slider. */
-function intervalFor(talkativeness: number): number {
-  const t = Math.min(1, Math.max(0, talkativeness))
-  return QUIETEST_MS + (CHATTIEST_MS - QUIETEST_MS) * t
-}
-
 function chooseContext(
   state: AppState,
   now: number,
@@ -308,7 +293,7 @@ export function tickNudges(
       ? isProperlyAngry(state, now)
         ? ANGRY_INTERVAL_MS
         : DISTRACTED_INTERVAL_MS
-      : intervalFor(settings.talkativeness)
+      : nudgeIntervalMs(settings.talkativeness)
   const last = runtime.lastNudgeAt ?? 0
   if (now - last < wait) return
 

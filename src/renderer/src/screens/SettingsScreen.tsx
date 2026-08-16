@@ -1,9 +1,17 @@
 import { useState } from 'react'
 import type { ClientState, LlmProvider } from '@shared/types'
-import { normaliseSite } from '@shared/defaults'
+import { describeNudgeInterval, normaliseSite } from '@shared/defaults'
 import type { Send } from '../App'
 
 type Tab = 'general' | 'cat' | 'focus' | 'connections' | 'privacy' | 'about'
+
+/** The four answers people actually want, spread across the slider's range. */
+const TALKATIVENESS = [
+  { label: 'Never', value: 0 },
+  { label: 'Rarely', value: 0.25 },
+  { label: 'Often', value: 0.6 },
+  { label: 'Chatty', value: 1 }
+]
 
 const TABS: Array<{ id: Tab; label: string }> = [
   { id: 'general', label: 'General' },
@@ -101,14 +109,34 @@ export function SettingsScreen({
                   ))}
                 </div>
               </Row>
+              {/*
+                A bare 0-100 slider called "talkativeness" tells you nothing
+                about how often you'll actually be interrupted, which is the
+                only thing anyone adjusting it wants to know. The presets are
+                the common answers; the readout underneath is the real one.
+              */}
               <Row
-                label="Talkativeness"
-                hint="how often the cat checks in or offers a word of its own accord. all the way down means never."
+                label="Speech bubbles"
+                hint={describeNudgeInterval(s.talkativeness)}
               >
+                <div className="seg">
+                  {TALKATIVENESS.map((t) => (
+                    <button
+                      key={t.label}
+                      aria-pressed={Math.abs(s.talkativeness - t.value) < 0.05}
+                      onClick={() => set({ talkativeness: t.value })}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </Row>
+              <Row label="Fine tune" hint="reminders and answers to questions are never affected">
                 <input
                   type="range"
                   min={0}
                   max={100}
+                  aria-label="Speech bubble frequency"
                   value={Math.round(s.talkativeness * 100)}
                   onChange={(e) => set({ talkativeness: Number(e.target.value) / 100 })}
                 />

@@ -12,11 +12,14 @@ import type { AppState } from '../src/shared/types'
 import {
   createInitialState,
   defaultBlockedSites,
+  describeNudgeInterval,
   isBlockedDomain,
-  normaliseSite
+  normaliseSite,
+  nudgeIntervalMs
 } from '../src/shared/defaults'
 import { deriveMood, tickPet } from '../src/main/pet'
 import { tickNudges } from '../src/main/nudges'
+import { computeInsights } from '../src/main/insights'
 
 let failures = 0
 
@@ -218,6 +221,82 @@ busy.bubbles = [
 ]
 tickNudges(busy, Date.now(), false, false)
 check('never talks over an existing bubble', busy.bubbles.length, 1)
+
+// -- insights --------------------------------------------------------------
+//
+// "Where the time went" and the day strip both shipped reading from sources
+// that were never written to, so they were permanently empty. These check the
+// wiring end to end rather than the formatting.
+
+const startOfToday = new Date().setHours(0, 0, 0, 0)
+
+function withSiteTime(): AppState {
+  const s = state()
+  s.siteTime = {
+    [String(startOfToday)]: {
+      'youtube.com': 42 * 60_000,
+      'notion.so': 90 * 60_000,
+      'wikipedia.org': 10 * 60_000
+    }
+  }
+  s.settings.blockedSites = ['youtube.com']
+  s.settings.studySites = ['notion.so']
+  return s
+}
+
+const withSites = computeInsights(withSiteTime(), Date.now())
+check('time per site is reported at all', withSites.topDomains.length, 3)
+check('the biggest site comes first', withSites.topDomains[0].domain, 'notion.so')
+check(
+  'a blocked site is marked blocked',
+  withSites.topDomains.find((d) => d.domain === 'youtube.com')?.blocked,
+  true
+)
+check(
+  'a study site is not',
+  withSites.topDomains.find((d) => d.domain === 'notion.so')?.blocked,
+  false
+)
+check('blocked time is totalled', withSites.distractedMinutesWeek, 42)
+check(
+  'the worst site is named in an observation',
+  withSites.observations.some((o) => o.includes('youtube.com')),
+  true
+)
+
+// Reclassifying a site must rewrite its history, not just its future.
+const reclassified = withSiteTime()
+reclassified.settings.studySites = ['notion.so', 'youtube.com']
+check(
+  'moving a site to study clears its distracted time',
+  computeInsights(reclassified, Date.now()).distractedMinutesWeek,
+  0
+)
+
+// The strip has to fill in during a session, not only once it has ended.
+const live = withSession(state())
+live.session!.startedAt = Date.now() - 30 * 60_000
+const liveStrip = computeInsights(live, Date.now()).dayStrip
+check('a running session shows on the day strip', liveStrip.some((s) => s.state === 'focused'), true)
+check('the day strip is never empty', liveStrip.length > 0, true)
+
+// A session at 3am must appear somewhere rather than fall outside the window.
+const nightOwl = withSession(state())
+const threeAm = startOfToday + 3 * 3_600_000
+nightOwl.session!.startedAt = threeAm
+const nightStrip = computeInsights(nightOwl, threeAm + 40 * 60_000).dayStrip
+check(
+  'a session outside 9-to-9 still shows',
+  nightStrip.some((s) => s.state === 'focused'),
+  true
+)
+
+// -- how often the cat speaks ----------------------------------------------
+
+check('silence is described as silence', describeNudgeInterval(0).includes('never'), true)
+check('chattiest is well under a minute', nudgeIntervalMs(1) < 60_000, true)
+check('quietest is several minutes', nudgeIntervalMs(0) >= 10 * 60_000, true)
+check('more talkative means a shorter gap', nudgeIntervalMs(1) < nudgeIntervalMs(0.5), true)
 
 console.log(failures === 0 ? '\nall behaviour checks passed' : `\n${failures} FAILED`)
 if (failures > 0) process.exitCode = 1

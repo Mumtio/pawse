@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Reminder } from '@shared/types'
+import type { Reminder, ReminderKind } from '@shared/types'
 import type { Send } from '../App'
 
 /**
@@ -11,35 +11,66 @@ import type { Send } from '../App'
  * raised yet.
  */
 
-function blank(): Reminder {
+function blank(kind: ReminderKind = 'custom'): Reminder {
+  const isMed = kind === 'medication'
   return {
-    id: `custom-${Date.now().toString(36)}`,
-    kind: 'custom',
+    id: `${kind}-${Date.now().toString(36)}`,
+    kind,
     label: '',
     message: '',
-    everyMinutes: 60,
+    // A dose is a time of day, not an interval — nobody takes one every 90
+    // minutes, and defaulting to that makes the common case extra work.
+    everyMinutes: isMed ? undefined : 60,
+    atTime: isMed ? '21:00' : undefined,
     enabled: true,
-    urgent: false,
+    // Medication is never held back or batched unless you explicitly ask.
+    urgent: isMed,
     todayCount: 0
   }
 }
 
 export function ReminderEditor({
   reminder,
+  newKind,
   send,
   onClose
 }: {
   /** Omitted when creating a new one. */
   reminder?: Reminder
+  /** What kind to start a new reminder as. Ignored when editing. */
+  newKind?: ReminderKind
   send: Send
   onClose: () => void
 }): React.JSX.Element {
   const isNew = !reminder
-  const [draft, setDraft] = useState<Reminder>(reminder ? { ...reminder } : blank())
+  const [draft, setDraft] = useState<Reminder>(reminder ? { ...reminder } : blank(newKind))
   const [mode, setMode] = useState<'interval' | 'time'>(draft.atTime ? 'time' : 'interval')
   const [useWindow, setUseWindow] = useState(Boolean(draft.windowStart && draft.windowEnd))
+  const isMedication = draft.kind === 'medication'
 
   const patch = (p: Partial<Reminder>): void => setDraft({ ...draft, ...p })
+
+  /**
+   * Switching to medication turns on the protections that make it medication:
+   * urgent by default, and scheduled at a time rather than on a loop. Switching
+   * away leaves them as they are — silently un-urgenting a dose reminder
+   * because someone changed a dropdown is not a decision this should make.
+   */
+  const setKind = (kind: ReminderKind): void => {
+    if (kind === draft.kind) return
+    if (kind === 'medication') {
+      setMode('time')
+      setDraft({
+        ...draft,
+        kind,
+        urgent: true,
+        everyMinutes: undefined,
+        atTime: draft.atTime || '21:00'
+      })
+      return
+    }
+    setDraft({ ...draft, kind })
+  }
 
   const save = (): void => {
     const next: Reminder = { ...draft, label: draft.label.trim() || 'Reminder' }
@@ -65,7 +96,24 @@ export function ReminderEditor({
   return (
     <div className="scrim" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="dialog">
-        <h2>{isNew ? 'New reminder' : draft.label || 'Reminder'}</h2>
+        <h2>
+          {isNew ? (isMedication ? 'New medication reminder' : 'New reminder') : draft.label || 'Reminder'}
+        </h2>
+
+        {/* Built-in reminders are what they are; only custom ones can switch. */}
+        {!draft.builtIn && (
+          <div className="stack">
+            <span className="label">kind</span>
+            <div className="seg">
+              <button aria-pressed={!isMedication} onClick={() => setKind('custom')}>
+                General
+              </button>
+              <button aria-pressed={isMedication} onClick={() => setKind('medication')}>
+                Medication
+              </button>
+            </div>
+          </div>
+        )}
 
         <label className="stack">
           <span className="label">name</span>
@@ -73,11 +121,30 @@ export function ReminderEditor({
             className="field"
             autoFocus
             maxLength={40}
-            placeholder="Posture check"
+            placeholder={isMedication ? 'Morning dose' : 'Posture check'}
             value={draft.label}
             onChange={(e) => patch({ label: e.target.value })}
           />
+          {isMedication && (
+            <span className="setting-hint">
+              a name you'll recognise. Pawse never asks what the medication is.
+            </span>
+          )}
         </label>
+
+        {isMedication && (
+          /*
+            The same load-bearing wording as the Reminders screen, repeated at
+            the point of creation. Someone setting up a dose reminder is
+            entitled to know exactly what this will and won't do before they
+            start relying on it.
+          */
+          <p className="medication-note">
+            Pawse reminds you and records what you tell it. It never marks a dose taken on its own,
+            it can't remind you while your computer is off, and it does not track doses, amounts, or
+            what you're taking. Don't rely on it as your only reminder for anything that matters.
+          </p>
+        )}
 
         <label className="stack">
           <span className="label">what the cat says</span>

@@ -16,22 +16,26 @@ const ICONS: Record<ReminderKind, string> = {
 export function Reminders({ state, send }: { state: ClientState; send: Send }): React.JSX.Element {
   const general = state.reminders.filter((r) => r.kind !== 'medication')
   const medication = state.reminders.filter((r) => r.kind === 'medication')
-  // `null` means the editor is closed; `undefined` inside it means "new".
-  const [editing, setEditing] = useState<Reminder | undefined | null>(null)
+  // `null` closes the editor. Otherwise `reminder` is the one being edited, or
+  // absent for a new one of `kind`.
+  const [editing, setEditing] = useState<{ reminder?: Reminder; kind?: ReminderKind } | null>(null)
 
   return (
     <>
       <header className="page-head">
         <h1>Reminders</h1>
         <div className="spacer" />
-        <button className="btn btn-primary" onClick={() => setEditing(undefined)}>
+        <button className="btn btn-ghost" onClick={() => setEditing({ kind: 'medication' })}>
+          + Medication
+        </button>
+        <button className="btn btn-primary" onClick={() => setEditing({ kind: 'custom' })}>
           + Add
         </button>
       </header>
 
       <section className="reminder-group">
         {general.map((r) => (
-          <ReminderRow key={r.id} reminder={r} send={send} onEdit={() => setEditing(r)} />
+          <ReminderRow key={r.id} reminder={r} send={send} onEdit={() => setEditing({ reminder: r })} />
         ))}
       </section>
 
@@ -40,16 +44,7 @@ export function Reminders({ state, send }: { state: ClientState; send: Send }): 
           <p className="group-title">Medication</p>
           {medication.map((r) => (
             <div key={r.id}>
-              <ReminderRow reminder={r} send={send} onEdit={() => setEditing(r)} />
-              {/*
-                This wording is deliberate and load-bearing. Pawse records what
-                you tell it and nothing more — it must never imply it knows
-                whether a dose was actually taken.
-              */}
-              <p className="medication-note">
-                Pawse reminds you and records what you tell it. It never marks a dose taken on its
-                own, and it can't remind you while your computer is off.
-              </p>
+              <ReminderRow reminder={r} send={send} onEdit={() => setEditing({ reminder: r })} />
               <p className="medication-today">
                 Today: {r.lastFiredAt ? `reminded ${time(r.lastFiredAt)}` : 'not reminded yet'}
                 {r.lastConfirmedAt && isToday(r.lastConfirmedAt)
@@ -58,6 +53,17 @@ export function Reminders({ state, send }: { state: ClientState; send: Send }): 
               </p>
             </div>
           ))}
+          {/*
+            This wording is deliberate and load-bearing. Pawse records what you
+            tell it and nothing more — it must never imply it knows whether a
+            dose was actually taken. Once per group rather than once per row:
+            repeating it under every dose turns a caveat people should read
+            into wallpaper they scroll past.
+          */}
+          <p className="medication-note">
+            Pawse reminds you and records what you tell it. It never marks a dose taken on its own,
+            and it can't remind you while your computer is off.
+          </p>
         </section>
       )}
 
@@ -101,7 +107,12 @@ export function Reminders({ state, send }: { state: ClientState; send: Send }): 
       </section>
 
       {editing !== null && (
-        <ReminderEditor reminder={editing} send={send} onClose={() => setEditing(null)} />
+        <ReminderEditor
+          reminder={editing.reminder}
+          newKind={editing.kind}
+          send={send}
+          onClose={() => setEditing(null)}
+        />
       )}
     </>
   )
