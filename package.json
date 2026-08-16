@@ -1,0 +1,31 @@
+{
+  "name": "pawse",
+  "version": "0.1.0",
+  "description": "A calm, no-shame study companion. Made for people who work better with a little company.",
+  "main": "./out/main/index.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "check": "esbuild scripts/behaviour-check.ts --bundle --platform=node --format=esm --alias:@shared=./src/shared --outfile=.tmp/check.mjs --log-level=warning && node .tmp/check.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "sprites": "esbuild src/renderer/src/cat/sprites.ts --bundle --format=esm --define:import.meta.env.DEV=false --outfile=.tmp/sprites.mjs --log-level=warning && node scripts/preview-sprites.mjs sprite-preview.png"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.0",
+    "electron": "^36.0.0",
+    "electron-vite": "^3.1.0",
+    "typescript": "^5.8.0",
+    "vite": "^6.3.0"
+  }
+}
