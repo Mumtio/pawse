@@ -51,72 +51,65 @@ nothing is ever written back to a workspace.
 
 ---
 
-## Running it
+## Setup
 
-Requires Node 20+.
+Requires [Node 20+](https://nodejs.org/).
+
+### 1. Download
+
+```bash
+git clone https://github.com/Mumtio/pawse.git
+cd pawse
+```
+
+Or download the ZIP from [github.com/Mumtio/pawse](https://github.com/Mumtio/pawse) and unzip it.
+
+### 2. Run the app
 
 ```bash
 npm install
 npm run dev
 ```
 
-`npm run build` produces the production bundle in `out/`. Packaging into an installer is not set
-up yet — `npm run dev` is how to run it.
+If Electron exits immediately with `Cannot read properties of undefined (reading 'app')`, unset
+`ELECTRON_RUN_AS_NODE` in your shell and try again.
 
-> **If Electron exits immediately** with `Cannot read properties of undefined (reading 'app')`,
-> check that `ELECTRON_RUN_AS_NODE` is not set in your shell. That variable makes Electron boot as
-> plain Node, so `require('electron')` returns a path string instead of the API.
+### 3. Connect an LLM (optional)
 
-### Fonts
+Used to turn pasted assignments into quest chapters. Without a key, chapters are split locally.
 
-The interface expects two pixel fonts that aren't committed. Drop the `.woff2` files into
-`src/renderer/public/fonts/` and they're picked up automatically:
+1. Open Pawse › **Settings › Connections**.
+2. Pick a provider:
+   - **Google AI Studio** — free key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+   - **OpenAI-compatible** — Groq, OpenRouter, Together, or LM Studio. Paste the key and base URL (`…/v1`).
+   - **Ollama** — local, no key. Have Ollama running. Default URL: `http://127.0.0.1:11434`
+3. Paste the API key (unless Ollama) and the model name.
+4. Save. Generate a quest from **Quests › Import** and approve the chapters before they are stored.
 
-| File                            | Where to get it                                    |
-| ------------------------------- | -------------------------------------------------- |
-| `DepartureMono-Regular.woff2`   | departuremono.com                                   |
-| `Silkscreen-Regular.woff2`      | Google Fonts — Silkscreen                           |
+The key stays on this computer and is only sent to the provider you picked.
 
-Without them everything still lays out correctly, just in your system monospace. They're loaded
-from disk rather than a CDN so the app keeps working offline.
+### 4. Connect Notion (optional)
 
-### Quest generation (optional, free)
+Read-only. Pawse never creates, edits, or deletes anything in your workspace.
 
-Settings › Connections. Pawse doesn't ship a key and doesn't proxy anything — your key is stored
-in the local data file and only ever sent to the provider you pick.
+1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations) › **New integration**.
+2. Give it **Read content** only. Copy the Internal Integration Secret.
+3. In Pawse › **Settings › Connections**, paste the token. Click **Test connection**.
+4. Open the Notion page (or database) you want. **Share** it with your integration from the ⋯ menu.
+   A new integration can see nothing until you do this.
+5. In Pawse, **Quests › Import › From Notion**, search, pick the page, approve the chapters.
 
-| Provider              | Notes                                                              |
-| --------------------- | ------------------------------------------------------------------ |
-| **Google AI Studio**  | Most generous free tier, no card. Key from aistudio.google.com/apikey |
-| **OpenAI-compatible** | Groq, OpenRouter, Together, LM Studio — anything with `/chat/completions` |
-| **Ollama**            | Fully local, no key, no network                                      |
-| **None**              | Chapters are split locally by a deterministic heuristic              |
+### 5. Install the Chrome extension (optional)
 
-Generated chapters are **always shown for approval before anything is saved**. The model is asked
-to regroup and rename work that is already in your text — never to invent requirements.
+Needed for the Gatekeeper (hide feeds during focus) and for the cat to see when you're on a blocked site.
 
-### Notion
+1. Open `chrome://extensions`.
+2. Turn on **Developer mode**.
+3. **Load unpacked** › select the `extension/` folder in this repo.
+4. Open the extension popup. Paste the pairing code from Pawse › **Settings › Connections**.
+5. Reload any tabs you already had open.
 
-Uses an **internal integration token**, not OAuth. A desktop app that ships its own source can't
-keep a client secret — every install would share one and anyone could lift it from the repo. An
-internal token is created by you, stays on your machine, and is revocable from Notion's settings
-without involving Pawse.
-
-1. `notion.so/my-integrations` › **New integration** › read-only capabilities are enough
-2. Paste its Internal Integration Secret into Settings › Connections
-3. **Open the page you want to import and share it with your integration** from its ⋯ menu
-
-Step 3 is the one people miss. A new integration starts with access to nothing, so a valid token
-on its own will still return an empty list — which also means the blast radius of this feature is
-exactly the pages you deliberately connect.
-
-### Browser extension
-
-1. `chrome://extensions` › enable **Developer mode** › **Load unpacked** › select `extension/`
-2. Open the extension and enter the pairing code from Settings › Connections
-
-The extension talks only to `127.0.0.1:17342` and must present that code, so a random web page
-can't read your focus state just because it can reach localhost.
+Settings should say **Paired**. If you change the code, click **Re-pair** and enter the new one.
 
 ---
 
