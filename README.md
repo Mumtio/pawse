@@ -176,6 +176,28 @@ per-frame `setBounds` timing for each drag.
 The features below are the ones that had to be designed, not just implemented. Each one is a
 small set of rules that the rest of the app is not allowed to break.
 
+### Built with
+
+The desktop app is **Electron 36** with **TypeScript**, **React 19**, and **Vite** via
+**electron-vite**. Two windows, two HTML entries, one renderer bundle. The runtime
+dependency list is React and React DOM — nothing else. There is no state library: main owns
+`AppState`, renderers send intents over a **preload contextBridge**, and a broadcast is the
+sync.
+
+The interface is **plain CSS** with custom properties (`tokens.css`). No Tailwind, no
+component library, no icon pack. Sprites and nav glyphs are character maps rendered as SVG
+rects. Cues are **Web Audio API** square waves, not files.
+
+The Gatekeeper is a **Chrome Manifest V3** extension in vanilla JavaScript — a service
+worker, a content script, and a CSS sheet. It talks to Electron over a loopback **Node
+`http` server** on `127.0.0.1:17342`. No WebSocket, no extra package: MV3 workers die
+constantly, and short polls survive that.
+
+Optional connections are fetch against **Google Gemini**, any **OpenAI-compatible**
+`/chat/completions` endpoint (Groq, OpenRouter, Together, LM Studio), local **Ollama**, and
+the **Notion API** (`2022-06-28`) with an internal integration token. All of them are
+behind a timeout and a local fallback, so a missing key never bricks the app.
+
 ### The cat's state
 
 Health and hunger are segmented pips, not smooth bars, and they live in main with everything
